@@ -3,204 +3,492 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Budget - Dark Mode</title>
-    
-    <!-- Meta tags -->
-    <meta name="description" content="Gestionnaire de budget personnel.">
-    
-    <!-- Tailwind CSS -->
+    <title>Budget Master - Gestion Personnelle</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & Babel -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #e0e7ff;
+            --bg-site: #f8fafc;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-site);
+            transition: background-color 0.4s ease;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .bg-primary { background-color: var(--primary); }
+        .text-primary { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .hover-bg-primary:hover { background-color: var(--primary-hover); }
+        .bg-primary-light { background-color: var(--primary-light); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 antialiased">
-    <div id="root">
-        <!-- Message de chargement initial si JS est lent -->
-        <div class="flex items-center justify-center h-screen">
-            <div class="text-slate-500 animate-pulse font-mono uppercase tracking-widest text-xs">Initialisation...</div>
+<body class="min-h-screen text-slate-900">
+
+    <!-- Navigation / Header -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-colors">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <div class="bg-primary p-2 rounded-lg transition-colors">
+                        <i data-lucide="wallet" class="text-white w-5 h-5"></i>
+                    </div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-800">BudgetMaster</h1>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <button onclick="toggleThemeModal()" class="p-2 text-slate-600 hover:text-primary transition-colors" title="Changer le thème">
+                        <i data-lucide="palette" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="openBudgetList()" class="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-primary transition-colors">
+                        <i data-lucide="folder-open" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Mes Budgets</span>
+                    </button>
+                    <button onclick="createNewBudgetPrompt()" class="bg-primary hover-bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-sm flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Nouveau</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+        
+        <!-- Dashboard Header -->
+        <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 id="currentBudgetName" class="text-2xl font-bold text-slate-800">Chargement...</h2>
+                <p class="text-slate-500 text-sm">Suivi de vos finances en temps réel</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="confirmReset()" class="text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                    <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                    Réinitialiser
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-slate-500 text-sm font-medium uppercase tracking-wider">Revenus</span>
+                    <div class="bg-emerald-100 p-2 rounded-lg"><i data-lucide="trending-up" class="text-emerald-600 w-5 h-5"></i></div>
+                </div>
+                <div id="totalIncome" class="text-2xl font-bold text-slate-800">0,00 €</div>
+            </div>
+            <div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-rose-500">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-slate-500 text-sm font-medium uppercase tracking-wider">Dépenses</span>
+                    <div class="bg-rose-100 p-2 rounded-lg"><i data-lucide="trending-down" class="text-rose-600 w-5 h-5"></i></div>
+                </div>
+                <div id="totalExpenses" class="text-2xl font-bold text-slate-800">0,00 €</div>
+            </div>
+            <div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-primary transition-colors">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-slate-500 text-sm font-medium uppercase tracking-wider">Solde</span>
+                    <div class="bg-primary-light p-2 rounded-lg transition-colors"><i data-lucide="pie-chart" class="text-primary w-5 h-5 transition-colors"></i></div>
+                </div>
+                <div id="netBalance" class="text-2xl font-bold text-slate-800">0,00 €</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Form Section -->
+            <div class="lg:col-span-1">
+                <div class="glass-card p-6 rounded-2xl shadow-sm sticky top-24">
+                    <h3 id="formTitle" class="text-lg font-semibold mb-4 text-slate-800">Ajouter une opération</h3>
+                    <form id="transactionForm" class="space-y-4">
+                        <input type="hidden" id="editId">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                            <input type="text" id="description" required placeholder="Courses, Salaire..." class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Montant (€)</label>
+                            <input type="number" id="amount" step="0.01" required placeholder="0.00" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                            <select id="type" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all bg-white">
+                                <option value="expense">Dépense</option>
+                                <option value="income">Revenu</option>
+                            </select>
+                        </div>
+                        <div class="pt-2 flex gap-2">
+                            <button type="submit" id="submitBtn" class="flex-1 bg-primary hover-bg-primary text-white font-semibold py-2.5 rounded-lg transition-all shadow-md">
+                                Ajouter
+                            </button>
+                            <button type="button" id="cancelEdit" class="hidden px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-all" onclick="resetForm()">
+                                Annuler
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- List Section -->
+            <div class="lg:col-span-2 space-y-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-lg font-semibold text-slate-800">Dernières transactions</h3>
+                    <div id="emptyState" class="hidden text-slate-400 text-sm italic">Aucune donnée</div>
+                </div>
+                <div id="transactionList" class="space-y-3">
+                    <!-- Les transactions s'affichent ici -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Mes Budgets -->
+    <div id="budgetModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-slate-800">Mes Budgets</h3>
+                <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div id="budgetListItems" class="p-4 max-h-[60vh] overflow-y-auto space-y-2">
+                <!-- Liste des budgets -->
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100">
+                <button onclick="createNewBudgetPrompt()" class="w-full bg-slate-800 text-white py-2 rounded-lg font-medium hover:bg-slate-900 transition-colors">
+                    + Créer un nouveau panneau
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-        import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+    <!-- Modal Thèmes -->
+    <div id="themeModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-slate-800">Choisir un thème</h3>
+                <button onclick="toggleThemeModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div class="p-6 grid grid-cols-2 gap-4" id="themeGrid">
+                <!-- Thèmes générés ici -->
+            </div>
+        </div>
+    </div>
 
-        // Sécurité : Vérification de la config
-        const config = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        
-        window.FirebaseServices = {
-            config, initializeApp, getAuth, signInAnonymously, onAuthStateChanged,
-            getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, getDocs, writeBatch
+    <!-- Notification system -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-slate-800 text-white rounded-full shadow-lg text-sm font-medium translate-y-20 opacity-0 transition-all z-50">
+        Action réussie !
+    </div>
+
+    <script>
+        // --- Configuration des thèmes ---
+        // Ajout d'une propriété bg pour la couleur de fond du site
+        const themes = [
+            { id: 'indigo', name: 'Indigo Classique', primary: '#4f46e5', hover: '#4338ca', light: '#e0e7ff', bg: '#f5f7ff' },
+            { id: 'emerald', name: 'Émeraude Zen', primary: '#10b981', hover: '#059669', light: '#d1fae5', bg: '#f0fdf4' },
+            { id: 'rose', name: 'Rose Doux', primary: '#f43f5e', hover: '#e11d48', light: '#ffe4e6', bg: '#fff1f2' },
+            { id: 'amber', name: 'Ambre Chaud', primary: '#f59e0b', hover: '#d97706', light: '#fef3c7', bg: '#fffbeb' },
+            { id: 'sky', name: 'Bleu Ciel', primary: '#0ea5e9', hover: '#0284c7', light: '#e0f2fe', bg: '#f0f9ff' },
+            { id: 'violet', name: 'Améthyste', primary: '#8b5cf6', hover: '#7c3aed', light: '#ede9fe', bg: '#f5f3ff' },
+            { id: 'slate', name: 'Nuit Ardoise', primary: '#475569', hover: '#334155', light: '#f1f5f9', bg: '#f8fafc' },
+            { id: 'teal', name: 'Lagon', primary: '#14b8a6', hover: '#0d9488', light: '#ccfbf1', bg: '#f0fdfa' },
+            { id: 'orange', name: 'Orange Énergie', primary: '#f97316', hover: '#ea580c', light: '#ffedd5', bg: '#fff7ed' },
+            { id: 'fuchsia', name: 'Néon Fuchsia', primary: '#d946ef', hover: '#c026d3', light: '#fae8ff', bg: '#fdf4ff' }
+        ];
+
+        // --- State Management ---
+        let appData = {
+            currentBudgetId: 'default',
+            currentThemeId: 'indigo',
+            budgets: {
+                'default': { name: 'Budget Principal', transactions: [] }
+            }
         };
 
-        // Déclencher un événement quand Firebase est prêt
-        window.dispatchEvent(new Event('firebase-ready'));
-    </script>
+        // Initialize from LocalStorage
+        const loadData = () => {
+            const saved = localStorage.getItem('budgetMasterData');
+            if (saved) {
+                appData = JSON.parse(saved);
+            }
+            applyTheme(appData.currentThemeId || 'indigo');
+            render();
+            renderThemeOptions();
+        };
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const saveData = () => {
+            localStorage.setItem('budgetMasterData', JSON.stringify(appData));
+            render();
+        };
 
-        function App() {
-            const [services, setServices] = useState(window.FirebaseServices);
-            const [user, setUser] = useState(null);
-            const [transactions, setTransactions] = useState([]);
-            const [loading, setLoading] = useState(true);
-            const [showResetConfirm, setShowResetConfirm] = useState(false);
-            const [formData, setFormData] = useState({
-                description: '', amount: '', type: 'expense', category: 'Alimentation'
+        // --- Theme Logic ---
+        const applyTheme = (themeId) => {
+            const theme = themes.find(t => t.id === themeId) || themes[0];
+            document.documentElement.style.setProperty('--primary', theme.primary);
+            document.documentElement.style.setProperty('--primary-hover', theme.hover);
+            document.documentElement.style.setProperty('--primary-light', theme.light);
+            document.documentElement.style.setProperty('--bg-site', theme.bg);
+            appData.currentThemeId = themeId;
+            saveData();
+        };
+
+        const renderThemeOptions = () => {
+            const grid = document.getElementById('themeGrid');
+            grid.innerHTML = themes.map(t => `
+                <button onclick="applyTheme('${t.id}')" class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all hover:scale-105 ${appData.currentThemeId === t.id ? 'border-primary bg-primary-light' : 'border-slate-100 hover:bg-slate-50'}">
+                    <div class="w-10 h-10 rounded-full shadow-inner" style="background-color: ${t.primary}"></div>
+                    <span class="text-[10px] font-bold uppercase tracking-tight text-slate-700">${t.name}</span>
+                </button>
+            `).join('');
+        };
+
+        const toggleThemeModal = () => {
+            document.getElementById('themeModal').classList.toggle('hidden');
+        };
+
+        // --- Core Logic ---
+        const getActiveBudget = () => appData.budgets[appData.currentBudgetId];
+
+        const addTransaction = (description, amount, type) => {
+            const budget = getActiveBudget();
+            const newTransaction = {
+                id: Date.now().toString(),
+                description,
+                amount: parseFloat(amount),
+                type,
+                date: new Date().toLocaleDateString('fr-FR')
+            };
+            budget.transactions.unshift(newTransaction);
+            saveData();
+            showToast("Transaction ajoutée");
+        };
+
+        const updateTransaction = (id, description, amount, type) => {
+            const budget = getActiveBudget();
+            const index = budget.transactions.findIndex(t => t.id === id);
+            if (index !== -1) {
+                budget.transactions[index] = { 
+                    ...budget.transactions[index], 
+                    description, 
+                    amount: parseFloat(amount), 
+                    type 
+                };
+                saveData();
+                showToast("Transaction mise à jour");
+                resetForm();
+            }
+        };
+
+        const deleteTransaction = (id) => {
+            const budget = getActiveBudget();
+            budget.transactions = budget.transactions.filter(t => t.id !== id);
+            saveData();
+            showToast("Transaction supprimée");
+        };
+
+        const switchBudget = (id) => {
+            appData.currentBudgetId = id;
+            saveData();
+            closeBudgetModal();
+            showToast(`Passage à : ${appData.budgets[id].name}`);
+        };
+
+        const createNewBudget = (name) => {
+            const id = 'b' + Date.now();
+            appData.budgets[id] = { name, transactions: [] };
+            appData.currentBudgetId = id;
+            saveData();
+            closeBudgetModal();
+        };
+
+        const deleteBudget = (id) => {
+            if (Object.keys(appData.budgets).length <= 1) {
+                alert("Vous devez garder au moins un budget.");
+                return;
+            }
+            delete appData.budgets[id];
+            if (appData.currentBudgetId === id) {
+                appData.currentBudgetId = Object.keys(appData.budgets)[0];
+            }
+            saveData();
+            renderBudgetList();
+        };
+
+        const confirmReset = () => {
+            if (confirm("Voulez-vous vraiment vider toutes les transactions de ce budget ?")) {
+                getActiveBudget().transactions = [];
+                saveData();
+                showToast("Budget réinitialisé");
+            }
+        };
+
+        // --- UI Interactions ---
+        const form = document.getElementById('transactionForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const desc = document.getElementById('description').value;
+            const amount = document.getElementById('amount').value;
+            const type = document.getElementById('type').value;
+
+            if (id) {
+                updateTransaction(id, desc, amount, type);
+            } else {
+                addTransaction(desc, amount, type);
+                form.reset();
+            }
+        });
+
+        const startEdit = (id) => {
+            const t = getActiveBudget().transactions.find(item => item.id === id);
+            document.getElementById('editId').value = t.id;
+            document.getElementById('description').value = t.description;
+            document.getElementById('amount').value = t.amount;
+            document.getElementById('type').value = t.type;
+            
+            document.getElementById('formTitle').innerText = "Modifier l'opération";
+            document.getElementById('submitBtn').innerText = "Mettre à jour";
+            document.getElementById('cancelEdit').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        const resetForm = () => {
+            form.reset();
+            document.getElementById('editId').value = "";
+            document.getElementById('formTitle').innerText = "Ajouter une opération";
+            document.getElementById('submitBtn').innerText = "Ajouter";
+            document.getElementById('cancelEdit').classList.add('hidden');
+        };
+
+        const createNewBudgetPrompt = () => {
+            const name = prompt("Nom du nouveau budget :");
+            if (name && name.trim()) {
+                createNewBudget(name.trim());
+            }
+        };
+
+        const openBudgetList = () => {
+            renderBudgetList();
+            document.getElementById('budgetModal').classList.remove('hidden');
+        };
+
+        const closeBudgetModal = () => {
+            document.getElementById('budgetModal').classList.add('hidden');
+        };
+
+        const showToast = (msg) => {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        };
+
+        // --- Rendering ---
+        const render = () => {
+            const budget = getActiveBudget();
+            document.getElementById('currentBudgetName').innerText = budget.name;
+
+            // Totals
+            let inc = 0, exp = 0;
+            budget.transactions.forEach(t => {
+                if (t.type === 'income') inc += t.amount;
+                else exp += t.amount;
             });
 
-            // Attendre que Firebase soit injecté dans window
-            useEffect(() => {
-                const handleReady = () => setServices(window.FirebaseServices);
-                window.addEventListener('firebase-ready', handleReady);
-                return () => window.removeEventListener('firebase-ready', handleReady);
-            }, []);
+            document.getElementById('totalIncome').innerText = inc.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+            document.getElementById('totalExpenses').innerText = exp.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+            const balance = inc - exp;
+            const balanceEl = document.getElementById('netBalance');
+            balanceEl.innerText = balance.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+            balanceEl.className = `text-2xl font-bold ${balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
 
-            useEffect(() => {
-                if (!services || !services.config) return;
+            // List
+            const listEl = document.getElementById('transactionList');
+            const emptyEl = document.getElementById('emptyState');
+            listEl.innerHTML = "";
 
-                const app = services.initializeApp(services.config);
-                const auth = services.getAuth(app);
-                const db = services.getFirestore(app);
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'budget-app';
-
-                services.signInAnonymously(auth).catch(console.error);
-                
-                const unsubAuth = services.onAuthStateChanged(auth, (currUser) => {
-                    setUser(currUser);
-                    if (currUser) {
-                        const q = services.collection(db, 'artifacts', appId, 'users', currUser.uid, 'transactions');
-                        const unsubSnap = services.onSnapshot(q, (snapshot) => {
-                            const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                            setTransactions(data.sort((a, b) => b.timestamp - a.timestamp));
-                            setLoading(false);
-                        }, (err) => {
-                            console.error("Firestore error:", err);
-                            setLoading(false);
-                        });
-                        return () => unsubSnap();
-                    }
-                });
-
-                return () => unsubAuth();
-            }, [services]);
-
-            // Actions
-            const handleAdd = async (e) => {
-                e.preventDefault();
-                if (!user || !formData.description || !formData.amount) return;
-                const db = services.getFirestore();
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'budget-app';
-                const docRef = services.doc(services.collection(db, 'artifacts', appId, 'users', user.uid, 'transactions'));
-                await services.setDoc(docRef, {
-                    ...formData,
-                    amount: parseFloat(formData.amount),
-                    timestamp: Date.now()
-                });
-                setFormData({ ...formData, description: '', amount: '' });
-            };
-
-            const stats = useMemo(() => {
-                return transactions.reduce((acc, t) => {
-                    if (t.type === 'income') { acc.inc += t.amount; acc.bal += t.amount; }
-                    else { acc.exp += t.amount; acc.bal -= t.amount; }
-                    return acc;
-                }, { inc: 0, exp: 0, bal: 0 });
-            }, [transactions]);
-
-            if (loading) return (
-                <div className="flex flex-col items-center justify-center h-screen bg-slate-950">
-                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <div className="text-slate-500 font-mono text-[10px] uppercase tracking-widest">Chargement du cloud...</div>
-                </div>
-            );
-
-            return (
-                <div className="p-4 md:p-8 max-w-4xl mx-auto animate-in fade-in duration-500">
-                    <header className="flex justify-between items-center mb-8">
-                        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                            <span className="text-blue-500">●</span> Mon Budget
-                        </h1>
-                        <div className="text-[10px] font-mono text-slate-500 bg-slate-900 px-3 py-1 rounded-full">
-                            UID: {user?.uid.substring(0,8)}...
-                        </div>
-                    </header>
-
-                    {/* Résumé */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                        <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800">
-                            <div className="text-slate-500 text-xs font-bold uppercase mb-1">Solde</div>
-                            <div className={`text-xl font-bold ${stats.bal >= 0 ? 'text-white' : 'text-rose-500'}`}>{stats.bal.toFixed(2)} €</div>
-                        </div>
-                        <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800">
-                            <div className="text-emerald-500 text-xs font-bold uppercase mb-1">Entrées</div>
-                            <div className="text-xl font-bold">+{stats.inc.toFixed(2)} €</div>
-                        </div>
-                        <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800">
-                            <div className="text-rose-500 text-xs font-bold uppercase mb-1">Sorties</div>
-                            <div className="text-xl font-bold">-{stats.exp.toFixed(2)} €</div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                        {/* Formulaire */}
-                        <form onSubmit={handleAdd} className="lg:col-span-2 space-y-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 h-fit sticky top-4">
-                            <input 
-                                type="text" placeholder="Description" required
-                                className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                                value={formData.description}
-                                onChange={e => setFormData({...formData, description: e.target.value})}
-                            />
-                            <div className="flex gap-2">
-                                <input 
-                                    type="number" step="0.01" placeholder="0.00" required
-                                    className="flex-1 p-3 rounded-xl bg-slate-800 border border-slate-700 outline-none text-sm"
-                                    value={formData.amount}
-                                    onChange={e => setFormData({...formData, amount: e.target.value})}
-                                />
-                                <select 
-                                    className="bg-slate-800 p-3 rounded-xl border border-slate-700 text-sm"
-                                    value={formData.type}
-                                    onChange={e => setFormData({...formData, type: e.target.value})}
-                                >
-                                    <option value="expense">Dépense</option>
-                                    <option value="income">Revenu</option>
-                                </select>
+            if (budget.transactions.length === 0) {
+                emptyEl.classList.remove('hidden');
+            } else {
+                emptyEl.classList.add('hidden');
+                budget.transactions.forEach(t => {
+                    const div = document.createElement('div');
+                    div.className = "glass-card p-4 rounded-xl shadow-sm flex items-center justify-between hover:border-primary transition-all group";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <div class="${t.type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} p-2 rounded-full">
+                                <i data-lucide="${t.type === 'income' ? 'arrow-up-right' : 'arrow-down-left'}" class="w-5 h-5"></i>
                             </div>
-                            <button className="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition-all text-sm">Ajouter</button>
-                        </form>
-
-                        {/* Liste */}
-                        <div className="lg:col-span-3 bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-                            <div className="p-4 border-b border-slate-800 font-bold text-xs uppercase tracking-widest text-slate-500">Historique</div>
-                            <div className="divide-y divide-slate-800">
-                                {transactions.length === 0 ? (
-                                    <div className="p-12 text-center text-slate-700 italic text-sm text-white">Vide</div>
-                                ) : transactions.map(t => (
-                                    <div key={t.id} className="p-4 flex justify-between items-center hover:bg-slate-800/20 transition-colors">
-                                        <div>
-                                            <div className="font-bold text-sm text-white">{t.description}</div>
-                                            <div className="text-[10px] text-slate-500">{new Date(t.timestamp).toLocaleDateString()}</div>
-                                        </div>
-                                        <div className={`font-mono font-bold ${t.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                            {t.type === 'income' ? '+' : '-'} {t.amount.toFixed(2)}€
-                                        </div>
-                                    </div>
-                                ))}
+                            <div>
+                                <h4 class="font-semibold text-slate-800">${t.description}</h4>
+                                <p class="text-xs text-slate-400">${t.date}</p>
                             </div>
                         </div>
-                    </div>
-                </div>
-            );
-        }
+                        <div class="flex items-center gap-4">
+                            <span class="font-bold ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}">
+                                ${t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                            </span>
+                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="startEdit('${t.id}')" class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary-light rounded-md transition-colors">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    listEl.appendChild(div);
+                });
+            }
+            lucide.createIcons();
+            renderThemeOptions();
+        };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        const renderBudgetList = () => {
+            const container = document.getElementById('budgetListItems');
+            container.innerHTML = "";
+            Object.keys(appData.budgets).forEach(id => {
+                const b = appData.budgets[id];
+                const isActive = id === appData.currentBudgetId;
+                const div = document.createElement('div');
+                div.className = `flex items-center justify-between p-3 rounded-xl cursor-pointer border-2 transition-all ${isActive ? 'border-primary bg-primary-light' : 'border-transparent bg-slate-100 hover:bg-slate-200'}`;
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 flex-1" onclick="switchBudget('${id}')">
+                        <i data-lucide="layout" class="w-4 h-4 ${isActive ? 'text-primary' : 'text-slate-500'}"></i>
+                        <span class="font-medium ${isActive ? 'text-slate-900' : 'text-slate-700'}">${b.name}</span>
+                    </div>
+                    ${!isActive ? `
+                        <button onclick="deleteBudget('${id}')" class="text-slate-400 hover:text-rose-600 p-1">
+                            <i data-lucide="trash" class="w-4 h-4"></i>
+                        </button>
+                    ` : '<i data-lucide="check-circle-2" class="text-primary w-4 h-4"></i>'}
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        };
+
+        // Initialize App
+        window.onload = () => {
+            loadData();
+            lucide.createIcons();
+        };
     </script>
 </body>
 </html>
