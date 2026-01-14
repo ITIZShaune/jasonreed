@@ -80,6 +80,33 @@
             to { transform: translateX(120%); opacity: 0; }
         }
 
+        /* Exp Bar styles */
+        .exp-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .exp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #818cf8);
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
+        }
+
+        .level-up-anim {
+            animation: level-up 1s ease-out forwards;
+        }
+
+        @keyframes level-up {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.1); filter: brightness(2); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
         /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
@@ -95,12 +122,33 @@
 </head>
 <body class="abyss-gradient min-h-screen flex flex-col items-center justify-center p-4">
 
-    <div id="app" class="max-w-4xl w-full flex flex-col items-center gap-12">
+    <div id="app" class="max-w-4xl w-full flex flex-col items-center gap-10">
         
         <header class="text-center space-y-2">
             <h1 class="text-5xl font-light tracking-tighter glow-text">L'ABYSSE DU VIDE</h1>
             <p class="text-gray-500 italic">"Le temps est la seule ressource que vous ne pouvez pas acheter."</p>
+            <div class="pt-2">
+                <button onclick="toggleSound()" id="sound-toggle" class="text-[10px] uppercase tracking-widest border border-white/20 px-3 py-1 rounded-full hover:bg-white/5 transition">
+                    Sons : Activés
+                </button>
+            </div>
         </header>
+
+        <!-- Système de Niveau -->
+        <div class="w-full max-w-md space-y-3">
+            <div class="flex justify-between items-end px-1">
+                <div class="flex items-baseline gap-2">
+                    <span class="text-xs uppercase tracking-widest text-gray-500">Niveau</span>
+                    <span id="level-display" class="text-3xl font-bold mono leading-none">1</span>
+                </div>
+                <div class="text-[10px] uppercase tracking-widest text-gray-400 mono">
+                    <span id="exp-current">0</span> / <span id="exp-next">100</span> XP
+                </div>
+            </div>
+            <div class="exp-container">
+                <div id="exp-bar" class="exp-fill"></div>
+            </div>
+        </div>
 
         <!-- Timer Central -->
         <div class="relative group">
@@ -177,34 +225,142 @@
         ];
 
         const ACHIEVEMENTS = [
+            // Succès temporels
             { id: 't_1m', name: "Nouveau-né", desc: "Exister 1 minute", req: (s) => s >= 60, chance: "100%" },
+            { id: 't_10m', name: "Observateur", desc: "Exister 10 minutes", req: (s) => s >= 600, chance: "100%" },
             { id: 't_1h', name: "Patient", desc: "Exister 1 heure", req: (s) => s >= 3600, chance: "100%" },
-            { id: 't_10h', name: "Statue de pierre", desc: "Exister 10 heures", req: (s) => s >= 36000, chance: "100%" },
-            { id: 'e_1', name: "L'éveil", desc: "Trouver votre premier Easter Egg", req: (s, e) => e.length >= 1, chance: "Varie" },
-            { id: 'e_10', name: "Collectionneur", desc: "Trouver 10 Easter Eggs", req: (s, e) => e.length >= 10, chance: "Varie" },
-            { id: 'e_rare', name: "L'Impossible", desc: "Trouver un Egg < 0.01% chance", req: (s, e) => e.some(id => EASTER_EGGS.find(egg => egg.id === id).chance <= 0.01), chance: "<0.01%" }
+            { id: 't_5h', name: "Anachorète", desc: "Exister 5 heures", req: (s) => s >= 18000, chance: "100%" },
+            
+            // Succès de collection
+            { id: 'e_1', name: "L'éveil", desc: "Trouver votre premier Easter Egg", req: (s, e) => e.length >= 1, chance: "Commun" },
+            { id: 'e_10', name: "Collectionneur", desc: "Trouver 10 Easter Eggs", req: (s, e) => e.length >= 10, chance: "Rare" },
+            { id: 'e_20', name: "Maître du Néant", desc: "Trouver 20 Easter Eggs", req: (s, e) => e.length >= 20, chance: "Légendaire" },
+            { id: 'e_rare', name: "L'Impossible", desc: "Trouver l'Alpha et l'Oméga", req: (s, e) => e.includes(25), chance: "Extrême" },
+
+            // Succès de Niveaux (Nouveaux)
+            { id: 'l_5', name: "Apprenti du Vide", desc: "Atteindre le niveau 5", req: (s, e, l) => l >= 5, chance: "Niveau" },
+            { id: 'l_10', name: "Entité Stable", desc: "Atteindre le niveau 10", req: (s, e, l) => l >= 10, chance: "Niveau" },
+            { id: 'l_25', name: "Anomalie Majeure", desc: "Atteindre le niveau 25", req: (s, e, l) => l >= 25, chance: "Niveau" },
+            { id: 'l_50', name: "Souverain de l'Infini", desc: "Atteindre le niveau 50", req: (s, e, l) => l >= 50, chance: "Niveau" }
         ];
 
         // --- ÉTAT DU JEU ---
         let gameState = {
             secondsPassed: 0,
             foundEggs: [],
-            achievements: []
+            achievements: [],
+            soundEnabled: true,
+            level: 1,
+            currentExp: 0
         };
 
         // Système de file d'attente pour les notifications
         let notificationQueue = [];
         let isNotificationActive = false;
+        let audioCtx = null;
 
-        // --- LOGIQUE ---
+        // --- AUDIO ENGINE ---
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playDiscoverySound(rarity) {
+            if (!gameState.soundEnabled) return;
+            initAudio();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            let freq = 220 + (1 / rarity) * 5; 
+            if (freq > 2000) freq = 2000;
+
+            oscillator.type = rarity < 0.01 ? 'sine' : 'triangle';
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(freq * 1.5, audioCtx.currentTime + 0.1);
+
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 1.5);
+
+            if (rarity < 0.1) {
+                const subOsc = audioCtx.createOscillator();
+                const subGain = audioCtx.createGain();
+                subOsc.connect(subGain);
+                subGain.connect(audioCtx.destination);
+                subOsc.frequency.setValueAtTime(freq * 2, audioCtx.currentTime + 0.1);
+                subGain.gain.setValueAtTime(0, audioCtx.currentTime + 0.1);
+                subGain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.15);
+                subGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
+                subOsc.start(audioCtx.currentTime + 0.1);
+                subOsc.stop(audioCtx.currentTime + 2);
+            }
+        }
+
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            document.getElementById('sound-toggle').textContent = `Sons : ${gameState.soundEnabled ? 'Activés' : 'Désactivés'}`;
+            if (gameState.soundEnabled) initAudio();
+        }
+
+        // --- LOGIQUE DE PROGRESSION ---
+        function getExpRequired(level) {
+            // Formule exponentielle simple : 100 * 1.2^(level-1)
+            return Math.floor(100 * Math.pow(1.2, level - 1));
+        }
+
+        function addExp(amount) {
+            gameState.currentExp += amount;
+            let nextReq = getExpRequired(gameState.level);
+            
+            while (gameState.currentExp >= nextReq) {
+                gameState.currentExp -= nextReq;
+                gameState.level++;
+                nextReq = getExpRequired(gameState.level);
+                onLevelUp();
+            }
+            updateExpUI();
+        }
+
+        function onLevelUp() {
+            const levelEl = document.getElementById('level-display');
+            levelEl.classList.remove('level-up-anim');
+            void levelEl.offsetWidth; // Trigger reflow
+            levelEl.classList.add('level-up-anim');
+            
+            queueNotification('Niveau Supérieur', `Vous êtes niveau ${gameState.level}`, '#fbbf24', 'L\'influence du vide grandit', 0.1);
+            // Vérifier les succès immédiatement après un level up
+            checkAchievements();
+        }
+
+        function updateExpUI() {
+            const currentReq = getExpRequired(gameState.level);
+            const percentage = (gameState.currentExp / currentReq) * 100;
+            
+            document.getElementById('level-display').textContent = gameState.level;
+            document.getElementById('exp-current').textContent = Math.floor(gameState.currentExp);
+            document.getElementById('exp-next').textContent = currentReq;
+            document.getElementById('exp-bar').style.width = `${percentage}%`;
+        }
+
+        // --- LOGIQUE GÉNÉRALE ---
         function init() {
             loadFromLocalStorage();
             updateUI();
+            updateExpUI();
             renderAchievements();
             renderEggs();
 
             setInterval(() => {
                 gameState.secondsPassed++;
+                addExp(1); // 1 XP par seconde
                 updateUI();
                 checkAchievements();
                 if (gameState.secondsPassed % 5 === 0) saveToLocalStorage();
@@ -223,6 +379,10 @@
                 try {
                     const parsed = JSON.parse(saved);
                     gameState = { ...gameState, ...parsed };
+                    if (gameState.level === undefined) gameState.level = 1;
+                    if (gameState.currentExp === undefined) gameState.currentExp = 0;
+                    
+                    document.getElementById('sound-toggle').textContent = `Sons : ${gameState.soundEnabled ? 'Activés' : 'Désactivés'}`;
                 } catch(e) { console.error("Erreur chargement save"); }
             }
         }
@@ -239,7 +399,8 @@
             if (lastEggId) {
                 const egg = EASTER_EGGS.find(e => e.id === lastEggId);
                 let label = "Commun";
-                if (egg.chance <= 0.01) label = "Légendaire";
+                if (egg.chance <= 0.001) label = "Divin";
+                else if (egg.chance <= 0.01) label = "Légendaire";
                 else if (egg.chance <= 0.1) label = "Rare";
                 
                 const el = document.getElementById('stat-rarity');
@@ -254,10 +415,11 @@
                     const roll = Math.random() * 100;
                     if (roll < egg.chance) {
                         gameState.foundEggs.push(egg.id);
+                        addExp(50); // Bonus d'XP pour découverte
                         spawnEggVisual(egg);
                         renderEggs();
                         saveToLocalStorage();
-                        queueNotification('Easter Egg Trouvé', egg.name, egg.color, `Rareté: ${egg.chance}%`);
+                        queueNotification('Easter Egg Trouvé', egg.name, egg.color, `Rareté: ${egg.chance}% (+50 XP)`, egg.chance);
                     }
                 }
             });
@@ -277,11 +439,12 @@
         function checkAchievements() {
             ACHIEVEMENTS.forEach(ach => {
                 if (!gameState.achievements.includes(ach.id)) {
-                    if (ach.req(gameState.secondsPassed, gameState.foundEggs)) {
+                    if (ach.req(gameState.secondsPassed, gameState.foundEggs, gameState.level)) {
                         gameState.achievements.push(ach.id);
+                        addExp(100); // Bonus d'XP pour succès
                         renderAchievements();
                         saveToLocalStorage();
-                        queueNotification('Succès Débloqué', ach.name, '#4f46e5', ach.desc);
+                        queueNotification('Succès Débloqué', ach.name, '#4f46e5', `${ach.desc} (+100 XP)`, 0.5);
                     }
                 }
             });
@@ -320,21 +483,20 @@
         }
 
         // --- GESTION DES NOTIFICATIONS ---
-
-        function queueNotification(title, name, color, extra) {
-            notificationQueue.push({ title, name, color, extra });
+        function queueNotification(title, name, color, extra, rarityVal) {
+            notificationQueue.push({ title, name, color, extra, rarityVal });
             processQueue();
         }
 
         function processQueue() {
             if (isNotificationActive || notificationQueue.length === 0) return;
-
             isNotificationActive = true;
             const data = notificationQueue.shift();
             showNotification(data);
         }
 
-        function showNotification({ title, name, color, extra }) {
+        function showNotification({ title, name, color, extra, rarityVal }) {
+            playDiscoverySound(rarityVal || 1);
             const toast = document.createElement('div');
             toast.className = 'success-toast';
             toast.style.borderLeftColor = color;
@@ -355,13 +517,12 @@
             
             document.getElementById('notifications-container').appendChild(toast);
             
-            // Délai d'affichage (3.5s + animation)
             setTimeout(() => {
                 toast.style.animation = 'slide-out 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards';
                 setTimeout(() => {
                     toast.remove();
                     isNotificationActive = false;
-                    processQueue(); // Passer à la suivante
+                    processQueue();
                 }, 500);
             }, 3500);
         }
