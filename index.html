@@ -19,8 +19,8 @@
         .glow-text { text-shadow: 0 0 20px rgba(255, 255, 255, 0.2); }
         .abyss-gradient { background: radial-gradient(circle at center, #111 0%, #050505 100%); }
 
-        /* Interface Musique */
-        .music-panel {
+        /* Contrôles Audio Discrets */
+        .audio-controls {
             position: fixed;
             top: 20px;
             right: 20px;
@@ -28,29 +28,11 @@
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px;
+            padding: 10px;
             border-radius: 12px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-        }
-
-        .easter-egg {
-            position: fixed;
-            pointer-events: none;
-            z-index: 50;
-            animation: fade-out 4s forwards;
-            font-weight: bold;
-            text-shadow: 0 0 15px rgba(0,0,0,0.8);
-            font-size: 1.5rem;
-        }
-
-        @keyframes fade-out {
-            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
-            10% { opacity: 1; transform: translateY(0) scale(1.1); }
-            15% { transform: scale(1); }
-            80% { opacity: 1; }
-            100% { opacity: 0; transform: translateY(-40px); }
+            gap: 5px;
         }
 
         .success-toast {
@@ -68,6 +50,7 @@
         }
 
         .success-toast::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #4f46e5; }
+        
         .exp-container { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; overflow: hidden; }
         .exp-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #818cf8); width: 0%; transition: width 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); }
 
@@ -80,15 +63,12 @@
 </head>
 <body class="abyss-gradient min-h-screen flex flex-col items-center justify-center p-4">
 
-    <div class="music-panel">
+    <div class="audio-controls">
         <div class="flex items-center justify-between gap-4">
-            <span class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Ambiance</span>
-            <button onclick="toggleMusic()" id="music-btn" class="text-[10px] border border-white/20 px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition">PLAY</button>
+            <span class="text-[10px] uppercase tracking-widest text-gray-400">Ambiance</span>
+            <button onclick="toggleMusic()" id="music-btn" class="text-[10px] border border-white/20 px-2 py-0.5 rounded hover:bg-white/10 transition">PLAY</button>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="text-[10px] text-gray-500">VOL</span>
-            <input type="range" min="0" max="1" step="0.01" value="0.3" oninput="updateMusicVol(this.value)" class="w-24 accent-indigo-500">
-        </div>
+        <input type="range" min="0" max="1" step="0.01" value="0.3" oninput="setMusicVol(this.value)" class="w-24 accent-indigo-500">
     </div>
 
     <div id="app" class="max-w-4xl w-full flex flex-col items-center gap-10">
@@ -127,11 +107,9 @@
                 <p class="text-xs text-gray-400 uppercase">Easter Eggs Trouvés</p>
                 <p id="stat-eggs" class="text-2xl font-semibold mono">0 / 25</p>
             </div>
-            <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center flex flex-col items-center justify-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <p class="text-xs text-gray-400 uppercase">Sauvegarde Active</p>
-                </div>
+            <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center">
+                <p class="text-xs text-gray-400 uppercase">Sauvegarde</p>
+                <p class="text-sm text-indigo-400 mono">Auto-Save ON</p>
             </div>
             <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center">
                 <p class="text-xs text-gray-400 uppercase">Rareté Actuelle</p>
@@ -150,22 +128,20 @@
     </div>
 
     <div id="notifications-container"></div>
-    <div id="visual-effects"></div>
 
     <script>
-        // --- DONNÉES DU JEU ---
-        const EASTER_EGGS = [
-            { id: 1, name: "Une ombre passe...", chance: 1, color: "#9ca3af" },
-            { id: 25, name: "L'Alpha et l'Oméga", chance: 0.0001, color: "#f8fafc" }
-        ];
-        const ACHIEVEMENTS = [
-            { id: 't_1m', name: "Nouveau-né", desc: "Exister 1 minute", req: (s) => s >= 60, chance: "100%" }
-        ];
+        // --- ÉTAT DU JEU ---
+        let gameState = {
+            secondsPassed: 0,
+            foundEggs: [],
+            achievements: [],
+            soundEnabled: true,
+            level: 1,
+            currentExp: 0
+        };
 
-        let gameState = { secondsPassed: 0, foundEggs: [], achievements: [], soundEnabled: true, level: 1, currentExp: 0 };
-        
-        // --- AUDIO ENGINE (MUSIQUE & SFX) ---
-        let audioCtx = null, musicGain = null, musicActive = false, oscillators = [];
+        // --- MOTEUR AUDIO (MUSIQUE) ---
+        let audioCtx = null, musicGain = null, musicActive = false, oscs = [];
 
         function initAudio() {
             if (!audioCtx) {
@@ -179,38 +155,38 @@
         function toggleMusic() {
             initAudio();
             if (!musicActive) {
-                [55, 110, 164.81].forEach(f => {
-                    let osc = audioCtx.createOscillator();
+                [55, 82.4, 110].forEach(f => {
+                    let o = audioCtx.createOscillator();
                     let g = audioCtx.createGain();
-                    osc.frequency.value = f;
+                    o.frequency.value = f;
                     g.gain.value = 0;
                     g.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 2);
-                    osc.connect(g); g.connect(musicGain);
-                    osc.start(); oscillators.push({osc, g});
+                    o.connect(g); g.connect(musicGain);
+                    o.start(); oscs.push({o, g});
                 });
                 musicActive = true;
                 document.getElementById('music-btn').textContent = "STOP";
             } else {
-                oscillators.forEach(o => {
-                    o.g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
-                    setTimeout(() => o.osc.stop(), 1000);
+                oscs.forEach(obj => {
+                    obj.g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+                    setTimeout(() => obj.o.stop(), 1000);
                 });
-                oscillators = []; musicActive = false;
+                oscs = []; musicActive = false;
                 document.getElementById('music-btn').textContent = "PLAY";
             }
         }
 
-        function updateMusicVol(v) { if(musicGain) musicGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.1); }
+        function setMusicVol(v) { if(musicGain) musicGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.1); }
 
-        function playDiscoverySound(r) {
+        function playSFX(r) {
             if (!gameState.soundEnabled) return;
             initAudio();
-            let osc = audioCtx.createOscillator(), g = audioCtx.createGain();
-            osc.frequency.setValueAtTime(220 + (1/r), audioCtx.currentTime);
+            let o = audioCtx.createOscillator(), g = audioCtx.createGain();
+            o.frequency.setValueAtTime(150 + (1/r), audioCtx.currentTime);
             g.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(); o.stop(audioCtx.currentTime + 1);
         }
 
         function toggleSound() {
@@ -218,14 +194,14 @@
             document.getElementById('sound-toggle').textContent = `Sons : ${gameState.soundEnabled ? 'Activés' : 'Désactivés'}`;
         }
 
-        // --- SYSTÈME DE SAUVEGARDE ---
+        // --- SAUVEGARDE ORIGINALE ---
         function save() { localStorage.setItem('abysse_save', JSON.stringify(gameState)); }
         function load() {
             const saved = localStorage.getItem('abysse_save');
             if (saved) gameState = { ...gameState, ...JSON.parse(saved) };
         }
 
-        // --- LOGIQUE CORE ---
+        // --- LOGIQUE JEU ---
         function updateUI() {
             const h = Math.floor(gameState.secondsPassed / 3600).toString().padStart(2, '0');
             const m = Math.floor((gameState.secondsPassed % 3600) / 60).toString().padStart(2, '0');
@@ -245,12 +221,12 @@
             gameState.currentExp += 1;
             let req = Math.floor(100 * Math.pow(1.2, gameState.level - 1));
             if(gameState.currentExp >= req) { 
-                gameState.currentExp -= req; 
+                gameState.currentExp = 0; 
                 gameState.level++; 
-                playDiscoverySound(0.5); 
+                playSFX(0.5); 
             }
             updateUI();
-            if (gameState.secondsPassed % 5 === 0) save();
+            if (gameState.secondsPassed % 10 === 0) save();
         }, 1000);
 
         function switchTab(t) {
