@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>L'Abysse du Vide - AFK Expérience</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/framer-motion/10.16.4/framer-motion.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono&display=swap');
         
@@ -31,6 +30,8 @@
             pointer-events: none;
             z-index: 50;
             animation: fade-out 4s forwards;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
         @keyframes fade-out {
@@ -57,11 +58,22 @@
             from { transform: translateX(100%); }
             to { transform: translateX(0); }
         }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body class="abyss-gradient min-h-screen flex flex-col items-center justify-center p-4">
 
-    <!-- Interface Principale -->
     <div id="app" class="max-w-4xl w-full flex flex-col items-center gap-12">
         
         <header class="text-center space-y-2">
@@ -78,163 +90,118 @@
             </div>
         </div>
 
-        <!-- Statistiques et Info -->
+        <!-- Statistiques -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-2xl">
             <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center">
                 <p class="text-xs text-gray-400 uppercase">Easter Eggs Trouvés</p>
                 <p id="stat-eggs" class="text-2xl font-semibold mono">0 / 25</p>
             </div>
-            <div id="save-indicator" class="bg-white/5 border border-white/10 p-4 rounded-xl text-center flex items-center justify-center gap-2">
-                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <p class="text-xs text-gray-400 uppercase">Sauvegarde Auto Active</p>
+            <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center flex flex-col items-center justify-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <p class="text-xs text-gray-400 uppercase">Sauvegarde Locale</p>
+                </div>
+                <p class="text-[10px] text-gray-600 mt-1">Auto-save toutes les 5s</p>
             </div>
             <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center">
                 <p class="text-xs text-gray-400 uppercase">Rareté Actuelle</p>
-                <p id="stat-rarity" class="text-2xl font-semibold mono text-indigo-400">Néant</p>
+                <p id="stat-rarity" class="text-2xl font-semibold mono text-gray-400">Néant</p>
             </div>
         </div>
 
         <!-- Onglets -->
         <div class="w-full">
             <div class="flex justify-center gap-4 mb-6">
-                <button onclick="switchTab('achievements')" class="px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 transition">Succès</button>
-                <button onclick="switchTab('eggs')" class="px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 transition">Collection</button>
+                <button id="btn-achievements" onclick="switchTab('achievements')" class="px-6 py-2 rounded-full border border-white/10 bg-white/10 transition">Succès</button>
+                <button id="btn-eggs" onclick="switchTab('eggs')" class="px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 transition">Collection</button>
             </div>
 
-            <!-- Conteneurs de listes -->
-            <div id="tab-achievements" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-                <!-- Rempli par JS -->
-            </div>
-            <div id="tab-eggs" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-                <!-- Rempli par JS -->
-            </div>
+            <div id="tab-achievements" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar"></div>
+            <div id="tab-eggs" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar"></div>
         </div>
     </div>
 
-    <!-- Notification Container -->
     <div id="notifications"></div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-
-        // Configuration Firebase (Valeurs par défaut pour le fonctionnement local si non fourni)
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "",
-            authDomain: "afk-void.firebaseapp.com",
-            projectId: "afk-void",
-            storageBucket: "afk-void.appspot.com",
-            messagingSenderId: "0",
-            appId: "0"
-        };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'afk-void-game';
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
+    <script>
         // --- DONNÉES DU JEU ---
-        
         const EASTER_EGGS = [
-            { id: 1, name: "Une ombre passe...", chance: 1, color: "gray-400" },
-            { id: 2, name: "Un murmure lointain", chance: 0.5, color: "gray-300" },
-            { id: 3, name: "Flash de lumière", chance: 0.3, color: "white" },
-            { id: 4, name: "Écho du temps", chance: 0.2, color: "blue-300" },
-            { id: 5, name: "Poussière d'étoile", chance: 0.15, color: "yellow-200" },
-            { id: 6, name: "Vibration quantique", chance: 0.1, color: "purple-400" },
-            { id: 7, name: "Erreur système simulée", chance: 0.08, color: "red-500" },
-            { id: 8, name: "Regard du vide", chance: 0.05, color: "indigo-600" },
-            { id: 9, name: "Singularité", chance: 0.04, color: "black" },
-            { id: 10, name: "Déjà-vu", chance: 0.03, color: "emerald-400" },
-            { id: 11, name: "L'œil d'Odin", chance: 0.02, color: "blue-500" },
-            { id: 12, name: "Code source visible", chance: 0.015, color: "green-500" },
-            { id: 13, name: "Le chat de Schrödinger", chance: 0.01, color: "orange-400" },
-            { id: 14, name: "Onde gravitationnelle", chance: 0.008, color: "cyan-300" },
-            { id: 15, name: "Paradoxe temporel", chance: 0.007, color: "rose-500" },
-            { id: 16, name: "Fragment d'éternité", chance: 0.006, color: "amber-300" },
-            { id: 17, name: "Battement de cœur du CPU", chance: 0.005, color: "red-600" },
-            { id: 18, name: "Une pensée pour toi", chance: 0.004, color: "pink-400" },
-            { id: 19, name: "L'appel de Cthulhu", chance: 0.003, color: "teal-600" },
-            { id: 20, name: "Zéro Absolu", chance: 0.002, color: "sky-200" },
-            { id: 21, name: "La Réponse (42)", chance: 0.001, color: "indigo-400" },
-            { id: 22, name: "Apparition du Créateur", chance: 0.0008, color: "yellow-500" },
-            { id: 23, name: "Supernova silencieuse", chance: 0.0005, color: "orange-600" },
-            { id: 24, name: "Collision de dimensions", chance: 0.0002, color: "fuchsia-500" },
-            { id: 25, name: "L'Alpha et l'Oméga", chance: 0.0001, color: "white" }
+            { id: 1, name: "Une ombre passe...", chance: 1, color: "#9ca3af" },
+            { id: 2, name: "Un murmure lointain", chance: 0.5, color: "#d1d5db" },
+            { id: 3, name: "Flash de lumière", chance: 0.3, color: "#ffffff" },
+            { id: 4, name: "Écho du temps", chance: 0.2, color: "#93c5fd" },
+            { id: 5, name: "Poussière d'étoile", chance: 0.15, color: "#fef08a" },
+            { id: 6, name: "Vibration quantique", chance: 0.1, color: "#c084fc" },
+            { id: 7, name: "Erreur système", chance: 0.08, color: "#ef4444" },
+            { id: 8, name: "Regard du vide", chance: 0.05, color: "#4f46e5" },
+            { id: 9, name: "Singularité", chance: 0.04, color: "#312e81" },
+            { id: 10, name: "Déjà-vu", chance: 0.03, color: "#34d399" },
+            { id: 11, name: "L'œil d'Odin", chance: 0.02, color: "#3b82f6" },
+            { id: 12, name: "Code source visible", chance: 0.015, color: "#22c55e" },
+            { id: 13, name: "Le chat de Schrödinger", chance: 0.01, color: "#fb923c" },
+            { id: 14, name: "Onde gravitationnelle", chance: 0.008, color: "#67e8f9" },
+            { id: 15, name: "Paradoxe temporel", chance: 0.007, color: "#f43f5e" },
+            { id: 16, name: "Fragment d'éternité", chance: 0.006, color: "#fcd34d" },
+            { id: 17, name: "Battement du CPU", chance: 0.005, color: "#dc2626" },
+            { id: 18, name: "Une pensée pour toi", chance: 0.004, color: "#f472b6" },
+            { id: 19, name: "L'appel de Cthulhu", chance: 0.003, color: "#0d9488" },
+            { id: 20, name: "Zéro Absolu", chance: 0.002, color: "#bae6fd" },
+            { id: 21, name: "La Réponse (42)", chance: 0.001, color: "#818cf8" },
+            { id: 22, name: "Apparition du Créateur", chance: 0.0008, color: "#eab308" },
+            { id: 23, name: "Supernova silencieuse", chance: 0.0005, color: "#ea580c" },
+            { id: 24, name: "Collision dimensionnelle", chance: 0.0002, color: "#d946ef" },
+            { id: 25, name: "L'Alpha et l'Oméga", chance: 0.0001, color: "#f8fafc" }
         ];
 
         const ACHIEVEMENTS = [
             { id: 't_1m', name: "Nouveau-né", desc: "Exister 1 minute", req: (s) => s >= 60, chance: "100%" },
             { id: 't_1h', name: "Patient", desc: "Exister 1 heure", req: (s) => s >= 3600, chance: "100%" },
             { id: 't_10h', name: "Statue de pierre", desc: "Exister 10 heures", req: (s) => s >= 36000, chance: "100%" },
-            { id: 'e_1', name: "L'éveil", desc: "Trouver votre premier Easter Egg", req: (s, e) => e.length >= 1, chance: "Varies" },
-            { id: 'e_10', name: "Collectionneur d'ombres", desc: "Trouver 10 Easter Eggs", req: (s, e) => e.length >= 10, chance: "Varies" },
-            { id: 'e_rare', name: "L'Impossible", desc: "Trouver un Egg avec moins de 0.01% de chance", req: (s, e) => e.some(id => EASTER_EGGS.find(egg => egg.id === id).chance <= 0.01), chance: "<0.01%" }
+            { id: 'e_1', name: "L'éveil", desc: "Trouver votre premier Easter Egg", req: (s, e) => e.length >= 1, chance: "Varie" },
+            { id: 'e_10', name: "Collectionneur", desc: "Trouver 10 Easter Eggs", req: (s, e) => e.length >= 10, chance: "Varie" },
+            { id: 'e_rare', name: "L'Impossible", desc: "Trouver un Egg < 0.01% chance", req: (s, e) => e.some(id => EASTER_EGGS.find(egg => egg.id === id).chance <= 0.01), chance: "<0.01%" }
         ];
 
         // --- ÉTAT DU JEU ---
         let gameState = {
             secondsPassed: 0,
             foundEggs: [],
-            achievements: [],
-            lastUpdate: Date.now()
+            achievements: []
         };
 
-        let user = null;
-
-        // --- INITIALISATION ---
-        const init = async () => {
-            // Auth
-            onAuthStateChanged(auth, async (u) => {
-                if (u) {
-                    user = u;
-                    loadGame();
-                } else {
-                    await signInAnonymously(auth);
-                }
-            });
-
-            // Boucle de jeu
-            setInterval(gameLoop, 1000);
+        // --- LOGIQUE ---
+        function init() {
+            loadFromLocalStorage();
             
-            // Check Easter Eggs
+            setInterval(() => {
+                gameState.secondsPassed++;
+                updateUI();
+                checkAchievements();
+                if (gameState.secondsPassed % 5 === 0) saveToLocalStorage();
+            }, 1000);
+            
             setInterval(checkEasterEggs, 5000);
 
-            // Rendu initial
             renderAchievements();
             renderEggs();
-        };
-
-        const loadGame = async () => {
-            if (!user) return;
-            const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'save');
-            const docSnap = await getDoc(docRef);
-            
-            if (docSnap.exists()) {
-                gameState = { ...gameState, ...docSnap.data() };
-                updateUI();
-            }
-        };
-
-        const saveGame = async () => {
-            if (!user) return;
-            const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'save');
-            await setDoc(docRef, gameState);
-        };
-
-        const gameLoop = () => {
-            gameState.secondsPassed++;
             updateUI();
-            checkAchievements();
-            
-            // Save every 30s
-            if (gameState.secondsPassed % 30 === 0) {
-                saveGame();
-            }
-        };
+        }
 
-        const updateUI = () => {
+        function saveToLocalStorage() {
+            localStorage.setItem('abysse_save', JSON.stringify(gameState));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('abysse_save');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    gameState = { ...gameState, ...parsed };
+                } catch(e) { console.error("Erreur chargement save"); }
+            }
+        }
+
+        function updateUI() {
             const h = Math.floor(gameState.secondsPassed / 3600).toString().padStart(2, '0');
             const m = Math.floor((gameState.secondsPassed % 3600) / 60).toString().padStart(2, '0');
             const s = (gameState.secondsPassed % 60).toString().padStart(2, '0');
@@ -242,119 +209,107 @@
             document.getElementById('main-timer').textContent = `${h}:${m}:${s}`;
             document.getElementById('stat-eggs').textContent = `${gameState.foundEggs.length} / ${EASTER_EGGS.length}`;
             
-            // Update rarity text based on eggs
-            const lastEgg = gameState.foundEggs[gameState.foundEggs.length - 1];
-            if (lastEgg) {
-                const egg = EASTER_EGGS.find(e => e.id === lastEgg);
-                const rarityLabel = egg.chance <= 0.01 ? "Légendaire" : egg.chance <= 0.1 ? "Rare" : "Commun";
-                const rarityEl = document.getElementById('stat-rarity');
-                rarityEl.textContent = rarityLabel;
-                rarityEl.className = `text-2xl font-semibold mono text-${egg.color}`;
+            const lastEggId = gameState.foundEggs[gameState.foundEggs.length - 1];
+            if (lastEggId) {
+                const egg = EASTER_EGGS.find(e => e.id === lastEggId);
+                let label = "Commun";
+                if (egg.chance <= 0.01) label = "Légendaire";
+                else if (egg.chance <= 0.1) label = "Rare";
+                
+                const el = document.getElementById('stat-rarity');
+                el.textContent = label;
+                el.style.color = egg.color;
             }
-        };
+        }
 
-        const checkEasterEggs = () => {
+        function checkEasterEggs() {
             EASTER_EGGS.forEach(egg => {
-                // Si pas déjà trouvé
                 if (!gameState.foundEggs.includes(egg.id)) {
                     const roll = Math.random() * 100;
                     if (roll < egg.chance) {
                         gameState.foundEggs.push(egg.id);
-                        showEasterEggUI(egg);
+                        spawnEggVisual(egg);
                         renderEggs();
-                        saveGame();
+                        saveToLocalStorage();
                     }
                 }
             });
-        };
+        }
 
-        const showEasterEggUI = (egg) => {
+        function spawnEggVisual(egg) {
             const div = document.createElement('div');
-            div.className = `easter-egg text-xl font-bold text-${egg.color}`;
+            div.className = `easter-egg`;
             div.style.left = `${Math.random() * 80 + 10}%`;
             div.style.top = `${Math.random() * 80 + 10}%`;
+            div.style.color = egg.color;
             div.textContent = `★ ${egg.name}`;
             document.getElementById('notifications').appendChild(div);
             
             setTimeout(() => div.remove(), 4000);
-            notify(`Nouvel Easter Egg : ${egg.name}`);
-        };
+            notify(`Trouvé : ${egg.name}`);
+        }
 
-        const checkAchievements = () => {
+        function checkAchievements() {
             ACHIEVEMENTS.forEach(ach => {
                 if (!gameState.achievements.includes(ach.id)) {
                     if (ach.req(gameState.secondsPassed, gameState.foundEggs)) {
                         gameState.achievements.push(ach.id);
-                        notify(`Succès débloqué : ${ach.name}`);
+                        notify(`Succès : ${ach.name}`);
                         renderAchievements();
-                        saveGame();
+                        saveToLocalStorage();
                     }
                 }
             });
-        };
+        }
 
-        const renderAchievements = () => {
+        function renderAchievements() {
             const container = document.getElementById('tab-achievements');
             container.innerHTML = ACHIEVEMENTS.map(ach => {
-                const unlocked = gameState.achievements.includes(ach.id);
+                const isDone = gameState.achievements.includes(ach.id);
                 return `
-                    <div class="p-3 rounded-lg border ${unlocked ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-white/5 bg-white/5'} flex flex-col">
+                    <div class="p-3 rounded-lg border ${isDone ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-white/5 bg-white/5'} flex flex-col">
                         <div class="flex justify-between items-start">
-                            <span class="font-bold ${unlocked ? 'text-white' : 'text-gray-500'}">${ach.name}</span>
-                            <span class="text-[10px] mono px-2 py-0.5 rounded bg-black/40 text-gray-400">${ach.chance} de chance</span>
+                            <span class="font-bold ${isDone ? 'text-white' : 'text-gray-500'}">${ach.name}</span>
+                            <span class="text-[10px] mono px-2 py-0.5 rounded bg-black/40 text-gray-400">${ach.chance}</span>
                         </div>
                         <span class="text-xs text-gray-400 mt-1">${ach.desc}</span>
-                        ${unlocked ? '<span class="text-[9px] text-indigo-300 mt-auto uppercase tracking-tighter">Débloqué</span>' : ''}
                     </div>
                 `;
             }).join('');
-        };
+        }
 
-        const renderEggs = () => {
+        function renderEggs() {
             const container = document.getElementById('tab-eggs');
             container.innerHTML = EASTER_EGGS.map(egg => {
                 const found = gameState.foundEggs.includes(egg.id);
                 return `
-                    <div class="p-3 rounded-lg border ${found ? `border-${egg.color}/30 bg-${egg.color}/5` : 'border-white/5 bg-white/5 opacity-50'} flex justify-between items-center">
+                    <div class="p-3 rounded-lg border ${found ? 'border-white/20 bg-white/5' : 'border-white/5 bg-white/5 opacity-40'} flex justify-between items-center">
                         <div class="flex flex-col">
-                            <span class="text-sm font-medium ${found ? 'text-white' : 'text-gray-600'}">${found ? egg.name : '?? ?????'}</span>
-                            <span class="text-[10px] text-gray-500">Probabilité: ${egg.chance}%</span>
+                            <span class="text-sm font-medium" style="color: ${found ? egg.color : '#444'}">${found ? egg.name : '?? ?????'}</span>
+                            <span class="text-[10px] text-gray-500">${egg.chance}% de chance</span>
                         </div>
-                        ${found ? `<span class="text-xl">✦</span>` : '<span class="text-xs italic">Manquant</span>'}
+                        <span class="text-xl">${found ? '✦' : ' '}</span>
                     </div>
                 `;
             }).join('');
-        };
+        }
 
-        const notify = (msg) => {
+        function notify(msg) {
             const toast = document.createElement('div');
             toast.className = 'success-toast';
             toast.innerHTML = `<p class="text-sm font-medium">${msg}</p>`;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.animation = 'slide-in 0.5s ease-in reverse forwards';
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
-        };
+            document.getElementById('notifications').appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
 
         window.switchTab = (tab) => {
             document.getElementById('tab-achievements').classList.toggle('hidden', tab !== 'achievements');
             document.getElementById('tab-eggs').classList.toggle('hidden', tab !== 'eggs');
-            
-            // Active state visuals
-            const buttons = document.querySelectorAll('button');
-            buttons.forEach(b => {
-                if(b.textContent.toLowerCase().includes(tab === 'achievements' ? 'succès' : 'collection')) {
-                    b.classList.add('bg-white/10');
-                } else {
-                    b.classList.remove('bg-white/10');
-                }
-            });
+            document.getElementById('btn-achievements').classList.toggle('bg-white/10', tab === 'achievements');
+            document.getElementById('btn-eggs').classList.toggle('bg-white/10', tab === 'eggs');
         };
 
-        // Start
         window.onload = init;
-
     </script>
 </body>
 </html>
