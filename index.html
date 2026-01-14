@@ -31,32 +31,53 @@
             z-index: 50;
             animation: fade-out 4s forwards;
             font-weight: bold;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            text-shadow: 0 0 15px rgba(0,0,0,0.8);
+            font-size: 1.5rem;
         }
 
         @keyframes fade-out {
-            0% { opacity: 0; transform: translateY(20px); }
-            10% { opacity: 1; transform: translateY(0); }
+            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+            10% { opacity: 1; transform: translateY(0) scale(1.1); }
+            15% { transform: scale(1); }
             80% { opacity: 1; }
-            100% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 0; transform: translateY(-40px); }
         }
 
         .success-toast {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #1a1a1a;
-            border-left: 4px solid #4f46e5;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            bottom: 30px;
+            right: 30px;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
             z-index: 100;
-            animation: slide-in 0.5s ease-out;
+            width: 320px;
+            animation: slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .success-toast::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #4f46e5;
         }
 
         @keyframes slide-in {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slide-out {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(120%); opacity: 0; }
         }
 
         /* Custom Scrollbar */
@@ -121,7 +142,9 @@
         </div>
     </div>
 
-    <div id="notifications"></div>
+    <!-- Conteneur pour une seule notification à la fois -->
+    <div id="notifications-container"></div>
+    <div id="visual-effects"></div>
 
     <script>
         // --- DONNÉES DU JEU ---
@@ -169,10 +192,17 @@
             achievements: []
         };
 
+        // Système de file d'attente pour les notifications
+        let notificationQueue = [];
+        let isNotificationActive = false;
+
         // --- LOGIQUE ---
         function init() {
             loadFromLocalStorage();
-            
+            updateUI();
+            renderAchievements();
+            renderEggs();
+
             setInterval(() => {
                 gameState.secondsPassed++;
                 updateUI();
@@ -181,10 +211,6 @@
             }, 1000);
             
             setInterval(checkEasterEggs, 5000);
-
-            renderAchievements();
-            renderEggs();
-            updateUI();
         }
 
         function saveToLocalStorage() {
@@ -231,6 +257,7 @@
                         spawnEggVisual(egg);
                         renderEggs();
                         saveToLocalStorage();
+                        queueNotification('Easter Egg Trouvé', egg.name, egg.color, `Rareté: ${egg.chance}%`);
                     }
                 }
             });
@@ -239,14 +266,12 @@
         function spawnEggVisual(egg) {
             const div = document.createElement('div');
             div.className = `easter-egg`;
-            div.style.left = `${Math.random() * 80 + 10}%`;
-            div.style.top = `${Math.random() * 80 + 10}%`;
+            div.style.left = `${Math.random() * 70 + 15}%`;
+            div.style.top = `${Math.random() * 70 + 15}%`;
             div.style.color = egg.color;
-            div.textContent = `★ ${egg.name}`;
-            document.getElementById('notifications').appendChild(div);
-            
+            div.textContent = `✦ ${egg.name}`;
+            document.getElementById('visual-effects').appendChild(div);
             setTimeout(() => div.remove(), 4000);
-            notify(`Trouvé : ${egg.name}`);
         }
 
         function checkAchievements() {
@@ -254,9 +279,9 @@
                 if (!gameState.achievements.includes(ach.id)) {
                     if (ach.req(gameState.secondsPassed, gameState.foundEggs)) {
                         gameState.achievements.push(ach.id);
-                        notify(`Succès : ${ach.name}`);
                         renderAchievements();
                         saveToLocalStorage();
+                        queueNotification('Succès Débloqué', ach.name, '#4f46e5', ach.desc);
                     }
                 }
             });
@@ -294,12 +319,51 @@
             }).join('');
         }
 
-        function notify(msg) {
+        // --- GESTION DES NOTIFICATIONS ---
+
+        function queueNotification(title, name, color, extra) {
+            notificationQueue.push({ title, name, color, extra });
+            processQueue();
+        }
+
+        function processQueue() {
+            if (isNotificationActive || notificationQueue.length === 0) return;
+
+            isNotificationActive = true;
+            const data = notificationQueue.shift();
+            showNotification(data);
+        }
+
+        function showNotification({ title, name, color, extra }) {
             const toast = document.createElement('div');
             toast.className = 'success-toast';
-            toast.innerHTML = `<p class="text-sm font-medium">${msg}</p>`;
-            document.getElementById('notifications').appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
+            toast.style.borderLeftColor = color;
+            
+            toast.innerHTML = `
+                <div class="flex flex-col gap-1">
+                    <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">${title}</span>
+                    <span class="text-lg font-bold text-white" style="text-shadow: 0 0 10px ${color}44">${name}</span>
+                    <div class="h-[1px] w-full bg-white/10 my-1"></div>
+                    <span class="text-xs text-gray-400 italic">${extra}</span>
+                </div>
+                <div class="absolute top-2 right-3 opacity-20">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                    </svg>
+                </div>
+            `;
+            
+            document.getElementById('notifications-container').appendChild(toast);
+            
+            // Délai d'affichage (3.5s + animation)
+            setTimeout(() => {
+                toast.style.animation = 'slide-out 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                setTimeout(() => {
+                    toast.remove();
+                    isNotificationActive = false;
+                    processQueue(); // Passer à la suivante
+                }, 500);
+            }, 3500);
         }
 
         window.switchTab = (tab) => {
