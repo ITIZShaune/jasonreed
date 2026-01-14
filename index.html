@@ -1,188 +1,1113 @@
 <!DOCTYPE html>
+
 <html lang="fr">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>L'Abysse du Vide - AFK Expérience</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
+
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono&display=swap');
+
         
+
         body {
+
             background-color: #050505;
+
             color: #e5e5e5;
+
             font-family: 'Inter', sans-serif;
+
             overflow-x: hidden;
+
         }
+
+
 
         .mono { font-family: 'Space Mono', monospace; }
-        .glow-text { text-shadow: 0 0 20px rgba(255, 255, 255, 0.2); }
-        .abyss-gradient { background: radial-gradient(circle at center, #111 0%, #050505 100%); }
 
-        .audio-controls {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+
+
+        .glow-text {
+
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+
         }
 
-        .exp-container { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; overflow: hidden; }
-        .exp-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #818cf8); width: 0%; transition: width 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
-        
-        .item-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 12px; border-radius: 8px; }
+
+        .abyss-gradient {
+
+            background: radial-gradient(circle at center, #111 0%, #050505 100%);
+
+        }
+
+
+
+        .easter-egg {
+
+            position: fixed;
+
+            pointer-events: none;
+
+            z-index: 50;
+
+            animation: fade-out 4s forwards;
+
+            font-weight: bold;
+
+            text-shadow: 0 0 15px rgba(0,0,0,0.8);
+
+            font-size: 1.5rem;
+
+        }
+
+
+
+        @keyframes fade-out {
+
+            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+
+            10% { opacity: 1; transform: translateY(0) scale(1.1); }
+
+            15% { transform: scale(1); }
+
+            80% { opacity: 1; }
+
+            100% { opacity: 0; transform: translateY(-40px); }
+
+        }
+
+
+
+        .success-toast {
+
+            position: fixed;
+
+            bottom: 30px;
+
+            right: 30px;
+
+            background: rgba(20, 20, 20, 0.95);
+
+            backdrop-filter: blur(10px);
+
+            border: 1px solid rgba(255, 255, 255, 0.1);
+
+            padding: 1.5rem;
+
+            border-radius: 12px;
+
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+
+            z-index: 100;
+
+            width: 320px;
+
+            animation: slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+
+            overflow: hidden;
+
+            pointer-events: none;
+
+        }
+
+
+
+        .success-toast::before {
+
+            content: '';
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            width: 4px;
+
+            height: 100%;
+
+            background: #4f46e5;
+
+        }
+
+
+
+        @keyframes slide-in {
+
+            from { transform: translateX(120%); opacity: 0; }
+
+            to { transform: translateX(0); opacity: 1; }
+
+        }
+
+
+
+        @keyframes slide-out {
+
+            from { transform: translateX(0); opacity: 1; }
+
+            to { transform: translateX(120%); opacity: 0; }
+
+        }
+
+
+
+        /* Exp Bar styles */
+
+        .exp-container {
+
+            width: 100%;
+
+            height: 6px;
+
+            background: rgba(255, 255, 255, 0.05);
+
+            border-radius: 10px;
+
+            overflow: hidden;
+
+            position: relative;
+
+        }
+
+        .exp-fill {
+
+            height: 100%;
+
+            background: linear-gradient(90deg, #4f46e5, #818cf8);
+
+            width: 0%;
+
+            transition: width 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
+
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
+
+        }
+
+
+
+        .level-up-anim {
+
+            animation: level-up 1s ease-out forwards;
+
+        }
+
+
+
+        @keyframes level-up {
+
+            0% { transform: scale(1); filter: brightness(1); }
+
+            50% { transform: scale(1.1); filter: brightness(2); }
+
+            100% { transform: scale(1); filter: brightness(1); }
+
+        }
+
+
+
+        /* Custom Scrollbar */
+
+        .custom-scrollbar::-webkit-scrollbar {
+
+            width: 4px;
+
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+
+            background: rgba(255, 255, 255, 0.05);
+
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+
+            background: rgba(255, 255, 255, 0.2);
+
+            border-radius: 10px;
+
+        }
+
     </style>
+
 </head>
+
 <body class="abyss-gradient min-h-screen flex flex-col items-center justify-center p-4">
 
-    <div class="audio-controls">
-        <div class="flex items-center justify-between gap-4">
-            <span class="text-[10px] uppercase tracking-widest text-gray-400">Musique</span>
-            <button onclick="toggleMusic()" id="music-btn" class="text-[10px] border border-white/20 px-2 py-0.5 rounded hover:bg-white/10 transition">PLAY</button>
-        </div>
-        <input type="range" min="0" max="1" step="0.01" value="0.3" oninput="setMusicVol(this.value)" class="w-24 accent-indigo-500">
-    </div>
+
 
     <div id="app" class="max-w-4xl w-full flex flex-col items-center gap-10">
+
+        
+
         <header class="text-center space-y-2">
+
             <h1 class="text-5xl font-light tracking-tighter glow-text">L'ABYSSE DU VIDE</h1>
+
             <p class="text-gray-500 italic">"Le temps est la seule ressource que vous ne pouvez pas acheter."</p>
+
             <div class="pt-2">
+
                 <button onclick="toggleSound()" id="sound-toggle" class="text-[10px] uppercase tracking-widest border border-white/20 px-3 py-1 rounded-full hover:bg-white/5 transition">
+
                     Sons : Activés
+
                 </button>
+
             </div>
+
         </header>
 
+
+
+        <!-- Système de Niveau -->
+
         <div class="w-full max-w-md space-y-3">
+
             <div class="flex justify-between items-end px-1">
+
                 <div class="flex items-baseline gap-2">
+
                     <span class="text-xs uppercase tracking-widest text-gray-500">Niveau</span>
-                    <span id="level-display" class="text-3xl font-bold mono">1</span>
+
+                    <span id="level-display" class="text-3xl font-bold mono leading-none">1</span>
+
                 </div>
+
                 <div class="text-[10px] uppercase tracking-widest text-gray-400 mono">
+
                     <span id="exp-current">0</span> / <span id="exp-next">100</span> XP
+
                 </div>
+
             </div>
-            <div class="exp-container"><div id="exp-bar" class="exp-fill"></div></div>
+
+            <div class="exp-container">
+
+                <div id="exp-bar" class="exp-fill"></div>
+
+            </div>
+
         </div>
 
-        <div class="relative bg-black border border-white/10 w-64 h-64 md:w-80 md:h-80 rounded-full flex flex-col items-center justify-center shadow-2xl">
-            <span id="main-timer" class="text-4xl md:text-5xl font-bold mono">00:00:00</span>
-            <span class="text-xs uppercase tracking-widest text-gray-500 mt-2">Temps d'existence</span>
+
+
+        <!-- Timer Central -->
+
+        <div class="relative group">
+
+            <div class="absolute -inset-1 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+
+            <div class="relative bg-black border border-white/10 w-64 h-64 md:w-80 md:h-80 rounded-full flex flex-col items-center justify-center shadow-2xl">
+
+                <span id="main-timer" class="text-4xl md:text-5xl font-bold mono">00:00:00</span>
+
+                <span class="text-xs uppercase tracking-widest text-gray-500 mt-2">Temps d'existence</span>
+
+            </div>
+
         </div>
+
+
+
+        <!-- Statistiques -->
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-2xl">
+
+            <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center">
+
+                <p class="text-xs text-gray-400 uppercase">Easter Eggs Trouvés</p>
+
+                <p id="stat-eggs" class="text-2xl font-semibold mono">0 / 25</p>
+
+            </div>
+
+            <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center flex flex-col items-center justify-center">
+
+                <div class="flex items-center gap-2">
+
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+
+                    <p class="text-xs text-gray-400 uppercase">Sauvegarde Locale</p>
+
+                </div>
+
+                <p class="text-[10px] text-gray-600 mt-1">Auto-save toutes les 5s</p>
+
+            </div>
+
+            <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center">
+
+                <p class="text-xs text-gray-400 uppercase">Rareté Actuelle</p>
+
+                <p id="stat-rarity" class="text-2xl font-semibold mono text-gray-400">Néant</p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Onglets -->
 
         <div class="w-full">
+
             <div class="flex justify-center gap-4 mb-6">
-                <button id="btn-achievements" onclick="switchTab('achievements')" class="px-6 py-2 rounded-full border border-white/10 bg-white/10 transition">Succès</button>
-                <button id="btn-eggs" onclick="switchTab('eggs')" class="px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 transition">Collection</button>
+
+                <button id="btn-achievements" onclick="switchTab('achievements')" class="flex items-center gap-2 px-6 py-2 rounded-full border border-white/10 bg-white/10 transition group">
+
+                    <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55.47.98.97 1.21C11.47 18.44 12 19 12 19s.53-.56 1.03-.79c.5-.23.97-.66.97-1.21v-2.34"></path><path d="M12 2v12"></path><path d="M7 2h10"></path></svg>
+
+                    <span>Succès</span>
+
+                </button>
+
+                <button id="btn-eggs" onclick="switchTab('eggs')" class="flex items-center gap-2 px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 transition group">
+
+                    <svg class="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><path d="M2 12h20"></path></svg>
+
+                    <span>Collection</span>
+
+                </button>
+
             </div>
+
+
+
             <div id="tab-achievements" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar"></div>
+
             <div id="tab-eggs" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar"></div>
+
         </div>
+
     </div>
 
+
+
+    <!-- Conteneur pour une seule notification à la fois -->
+
+    <div id="notifications-container"></div>
+
+    <div id="visual-effects"></div>
+
+
+
     <script>
+
+        // --- DONNÉES DU JEU ---
+
         const EASTER_EGGS = [
-            { id: 1, name: "Une ombre passe...", desc: "Une sensation étrange." },
-            { id: 2, name: "Le Cri du Vide", desc: "Le silence est assourdissant." }
+
+            { id: 1, name: "Une ombre passe...", chance: 1, color: "#9ca3af" },
+
+            { id: 2, name: "Un murmure lointain", chance: 0.5, color: "#d1d5db" },
+
+            { id: 3, name: "Flash de lumière", chance: 0.3, color: "#ffffff" },
+
+            { id: 4, name: "Écho du temps", chance: 0.2, color: "#93c5fd" },
+
+            { id: 5, name: "Poussière d'étoile", chance: 0.15, color: "#fef08a" },
+
+            { id: 6, name: "Vibration quantique", chance: 0.1, color: "#c084fc" },
+
+            { id: 7, name: "Erreur système", chance: 0.08, color: "#ef4444" },
+
+            { id: 8, name: "Regard du vide", chance: 0.05, color: "#4f46e5" },
+
+            { id: 9, name: "Singularité", chance: 0.04, color: "#312e81" },
+
+            { id: 10, name: "Déjà-vu", chance: 0.03, color: "#34d399" },
+
+            { id: 11, name: "L'œil d'Odin", chance: 0.02, color: "#3b82f6" },
+
+            { id: 12, name: "Code source visible", chance: 0.015, color: "#22c55e" },
+
+            { id: 13, name: "Le chat de Schrödinger", chance: 0.01, color: "#fb923c" },
+
+            { id: 14, name: "Onde gravitationnelle", chance: 0.008, color: "#67e8f9" },
+
+            { id: 15, name: "Paradoxe temporel", chance: 0.007, color: "#f43f5e" },
+
+            { id: 16, name: "Fragment d'éternité", chance: 0.006, color: "#fcd34d" },
+
+            { id: 17, name: "Battement du CPU", chance: 0.005, color: "#dc2626" },
+
+            { id: 18, name: "Une pensée pour toi", chance: 0.004, color: "#f472b6" },
+
+            { id: 19, name: "L'appel de Cthulhu", chance: 0.003, color: "#0d9488" },
+
+            { id: 20, name: "Zéro Absolu", chance: 0.002, color: "#bae6fd" },
+
+            { id: 21, name: "La Réponse (42)", chance: 0.001, color: "#818cf8" },
+
+            { id: 22, name: "Apparition du Créateur", chance: 0.0008, color: "#eab308" },
+
+            { id: 23, name: "Supernova silencieuse", chance: 0.0005, color: "#ea580c" },
+
+            { id: 24, name: "Collision dimensionnelle", chance: 0.0002, color: "#d946ef" },
+
+            { id: 25, name: "L'Alpha et l'Oméga", chance: 0.0001, color: "#f8fafc" }
+
         ];
+
+
 
         const ACHIEVEMENTS = [
-            { id: 't_1m', name: "Nouveau-né", desc: "Exister 1 minute" },
-            { id: 'l_10', name: "Entité", desc: "Atteindre le niveau 10" }
+
+            // Succès temporels
+
+            { id: 't_1m', name: "Nouveau-né", desc: "Exister 1 minute", req: (s) => s >= 60, chance: "100%" },
+
+            { id: 't_10m', name: "Observateur", desc: "Exister 10 minutes", req: (s) => s >= 600, chance: "100%" },
+
+            { id: 't_1h', name: "Patient", desc: "Exister 1 heure", req: (s) => s >= 3600, chance: "100%" },
+
+            { id: 't_5h', name: "Anachorète", desc: "Exister 5 heures", req: (s) => s >= 18000, chance: "100%" },
+
+            
+
+            // Succès de collection
+
+            { id: 'e_1', name: "L'éveil", desc: "Trouver votre premier Easter Egg", req: (s, e) => e.length >= 1, chance: "Commun" },
+
+            { id: 'e_10', name: "Collectionneur", desc: "Trouver 10 Easter Eggs", req: (s, e) => e.length >= 10, chance: "Rare" },
+
+            { id: 'e_20', name: "Maître du Néant", desc: "Trouver 20 Easter Eggs", req: (s, e) => e.length >= 20, chance: "Légendaire" },
+
+            { id: 'e_rare', name: "L'Impossible", desc: "Trouver l'Alpha et l'Oméga", req: (s, e) => e.includes(25), chance: "Extrême" },
+
+
+
+            // Succès de Niveaux (Nouveaux)
+
+            { id: 'l_5', name: "Apprenti du Vide", desc: "Atteindre le niveau 5", req: (s, e, l) => l >= 5, chance: "Niveau" },
+
+            { id: 'l_10', name: "Entité Stable", desc: "Atteindre le niveau 10", req: (s, e, l) => l >= 10, chance: "Niveau" },
+
+            { id: 'l_25', name: "Anomalie Majeure", desc: "Atteindre le niveau 25", req: (s, e, l) => l >= 25, chance: "Niveau" },
+
+            { id: 'l_50', name: "Souverain de l'Infini", desc: "Atteindre le niveau 50", req: (s, e, l) => l >= 50, chance: "Niveau" }
+
         ];
 
-        let gameState = { secondsPassed: 0, foundEggs: [], achievements: [], soundEnabled: true, level: 1, currentExp: 0 };
 
-        // AUDIO
-        let audioCtx = null, musicGain = null, musicActive = false, oscs = [];
-        function initAudio() { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); musicGain = audioCtx.createGain(); musicGain.connect(audioCtx.destination); musicGain.gain.value = 0.3; } }
-        function toggleMusic() {
-            initAudio();
-            if (!musicActive) {
-                [55, 110].forEach(f => {
-                    let o = audioCtx.createOscillator(); let g = audioCtx.createGain();
-                    o.frequency.value = f; g.gain.value = 0; g.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 2);
-                    o.connect(g); g.connect(musicGain); o.start(); oscs.push({o, g});
-                });
-                musicActive = true; document.getElementById('music-btn').textContent = "STOP";
-            } else {
-                oscs.forEach(obj => { obj.g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1); setTimeout(() => obj.o.stop(), 1000); });
-                oscs = []; musicActive = false; document.getElementById('music-btn').textContent = "PLAY";
+
+        // --- ÉTAT DU JEU ---
+
+        let gameState = {
+
+            secondsPassed: 0,
+
+            foundEggs: [],
+
+            achievements: [],
+
+            soundEnabled: true,
+
+            level: 1,
+
+            currentExp: 0
+
+        };
+
+
+
+        // Système de file d'attente pour les notifications
+
+        let notificationQueue = [];
+
+        let isNotificationActive = false;
+
+        let audioCtx = null;
+
+
+
+        // --- AUDIO ENGINE ---
+
+        function initAudio() {
+
+            if (!audioCtx) {
+
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
             }
-        }
-        function setMusicVol(v) { if(musicGain) musicGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.1); }
-        function toggleSound() { gameState.soundEnabled = !gameState.soundEnabled; document.getElementById('sound-toggle').textContent = `Sons : ${gameState.soundEnabled ? 'Activés' : 'Désactivés'}`; }
 
-        // LOGIQUE AFFICHAGE (FIX)
-        function renderLists() {
-            const achTab = document.getElementById('tab-achievements');
-            const eggTab = document.getElementById('tab-eggs');
+        }
+
+
+
+        function playDiscoverySound(rarity) {
+
+            if (!gameState.soundEnabled) return;
+
+            initAudio();
+
             
-            achTab.innerHTML = ACHIEVEMENTS.map(a => `
-                <div class="item-card ${gameState.achievements.includes(a.id) ? 'opacity-100 border-indigo-500/50' : 'opacity-40'}">
-                    <p class="text-sm font-bold">${a.name}</p>
-                    <p class="text-[10px] text-gray-500 uppercase">${a.desc}</p>
-                </div>
-            `).join('');
 
-            eggTab.innerHTML = EASTER_EGGS.map(e => `
-                <div class="item-card ${gameState.foundEggs.includes(e.id) ? 'opacity-100 border-white/20' : 'opacity-40'}">
-                    <p class="text-sm font-bold">${gameState.foundEggs.includes(e.id) ? e.name : '???'}</p>
-                    <p class="text-[10px] text-gray-500 uppercase">${gameState.foundEggs.includes(e.id) ? e.desc : 'Non découvert'}</p>
-                </div>
-            `).join('');
+            const oscillator = audioCtx.createOscillator();
+
+            const gainNode = audioCtx.createGain();
+
+
+
+            oscillator.connect(gainNode);
+
+            gainNode.connect(audioCtx.destination);
+
+
+
+            let freq = 220 + (1 / rarity) * 5; 
+
+            if (freq > 2000) freq = 2000;
+
+
+
+            oscillator.type = rarity < 0.01 ? 'sine' : 'triangle';
+
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+            oscillator.frequency.exponentialRampToValueAtTime(freq * 1.5, audioCtx.currentTime + 0.1);
+
+
+
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+
+            gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
+
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
+
+
+
+            oscillator.start();
+
+            oscillator.stop(audioCtx.currentTime + 1.5);
+
+
+
+            if (rarity < 0.1) {
+
+                const subOsc = audioCtx.createOscillator();
+
+                const subGain = audioCtx.createGain();
+
+                subOsc.connect(subGain);
+
+                subGain.connect(audioCtx.destination);
+
+                subOsc.frequency.setValueAtTime(freq * 2, audioCtx.currentTime + 0.1);
+
+                subGain.gain.setValueAtTime(0, audioCtx.currentTime + 0.1);
+
+                subGain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.15);
+
+                subGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
+
+                subOsc.start(audioCtx.currentTime + 0.1);
+
+                subOsc.stop(audioCtx.currentTime + 2);
+
+            }
+
         }
 
-        // SAVE / LOAD
-        function save() { localStorage.setItem('abysse_save', JSON.stringify(gameState)); }
-        function load() {
+
+
+        function toggleSound() {
+
+            gameState.soundEnabled = !gameState.soundEnabled;
+
+            document.getElementById('sound-toggle').textContent = `Sons : ${gameState.soundEnabled ? 'Activés' : 'Désactivés'}`;
+
+            if (gameState.soundEnabled) initAudio();
+
+        }
+
+
+
+        // --- LOGIQUE DE PROGRESSION ---
+
+        function getExpRequired(level) {
+
+            // Formule exponentielle simple : 100 * 1.2^(level-1)
+
+            return Math.floor(100 * Math.pow(1.2, level - 1));
+
+        }
+
+
+
+        function addExp(amount) {
+
+            gameState.currentExp += amount;
+
+            let nextReq = getExpRequired(gameState.level);
+
+            
+
+            while (gameState.currentExp >= nextReq) {
+
+                gameState.currentExp -= nextReq;
+
+                gameState.level++;
+
+                nextReq = getExpRequired(gameState.level);
+
+                onLevelUp();
+
+            }
+
+            updateExpUI();
+
+        }
+
+
+
+        function onLevelUp() {
+
+            const levelEl = document.getElementById('level-display');
+
+            levelEl.classList.remove('level-up-anim');
+
+            void levelEl.offsetWidth; // Trigger reflow
+
+            levelEl.classList.add('level-up-anim');
+
+            
+
+            queueNotification('Niveau Supérieur', `Vous êtes niveau ${gameState.level}`, '#fbbf24', 'L\'influence du vide grandit', 0.1);
+
+            // Vérifier les succès immédiatement après un level up
+
+            checkAchievements();
+
+        }
+
+
+
+        function updateExpUI() {
+
+            const currentReq = getExpRequired(gameState.level);
+
+            const percentage = (gameState.currentExp / currentReq) * 100;
+
+            
+
+            document.getElementById('level-display').textContent = gameState.level;
+
+            document.getElementById('exp-current').textContent = Math.floor(gameState.currentExp);
+
+            document.getElementById('exp-next').textContent = currentReq;
+
+            document.getElementById('exp-bar').style.width = `${percentage}%`;
+
+        }
+
+
+
+        // --- LOGIQUE GÉNÉRALE ---
+
+        function init() {
+
+            loadFromLocalStorage();
+
+            updateUI();
+
+            updateExpUI();
+
+            renderAchievements();
+
+            renderEggs();
+
+
+
+            setInterval(() => {
+
+                gameState.secondsPassed++;
+
+                addExp(1); // 1 XP par seconde
+
+                updateUI();
+
+                checkAchievements();
+
+                if (gameState.secondsPassed % 5 === 0) saveToLocalStorage();
+
+            }, 1000);
+
+            
+
+            setInterval(checkEasterEggs, 5000);
+
+        }
+
+
+
+        function saveToLocalStorage() {
+
+            localStorage.setItem('abysse_save', JSON.stringify(gameState));
+
+        }
+
+
+
+        function loadFromLocalStorage() {
+
             const saved = localStorage.getItem('abysse_save');
-            if (saved) { gameState = { ...gameState, ...JSON.parse(saved) }; }
-            renderLists();
+
+            if (saved) {
+
+                try {
+
+                    const parsed = JSON.parse(saved);
+
+                    gameState = { ...gameState, ...parsed };
+
+                    if (gameState.level === undefined) gameState.level = 1;
+
+                    if (gameState.currentExp === undefined) gameState.currentExp = 0;
+
+                    
+
+                    document.getElementById('sound-toggle').textContent = `Sons : ${gameState.soundEnabled ? 'Activés' : 'Désactivés'}`;
+
+                } catch(e) { console.error("Erreur chargement save"); }
+
+            }
+
         }
+
+
 
         function updateUI() {
+
             const h = Math.floor(gameState.secondsPassed / 3600).toString().padStart(2, '0');
+
             const m = Math.floor((gameState.secondsPassed % 3600) / 60).toString().padStart(2, '0');
+
             const s = (gameState.secondsPassed % 60).toString().padStart(2, '0');
-            document.getElementById('main-timer').textContent = `${h}:${m}:${s}`;
+
             
-            let req = Math.floor(100 * Math.pow(1.2, gameState.level - 1));
-            document.getElementById('level-display').textContent = gameState.level;
-            document.getElementById('exp-current').textContent = Math.floor(gameState.currentExp);
-            document.getElementById('exp-next').textContent = req;
-            document.getElementById('exp-bar').style.width = `${(gameState.currentExp/req)*100}%`;
+
+            document.getElementById('main-timer').textContent = `${h}:${m}:${s}`;
+
+            document.getElementById('stat-eggs').textContent = `${gameState.foundEggs.length} / ${EASTER_EGGS.length}`;
+
+            
+
+            const lastEggId = gameState.foundEggs[gameState.foundEggs.length - 1];
+
+            if (lastEggId) {
+
+                const egg = EASTER_EGGS.find(e => e.id === lastEggId);
+
+                let label = "Commun";
+
+                if (egg.chance <= 0.001) label = "Divin";
+
+                else if (egg.chance <= 0.01) label = "Légendaire";
+
+                else if (egg.chance <= 0.1) label = "Rare";
+
+                
+
+                const el = document.getElementById('stat-rarity');
+
+                el.textContent = label;
+
+                el.style.color = egg.color;
+
+            }
+
         }
 
-        setInterval(() => {
-            gameState.secondsPassed++;
-            gameState.currentExp += 1;
-            let req = Math.floor(100 * Math.pow(1.2, gameState.level - 1));
-            if(gameState.currentExp >= req) { gameState.currentExp = 0; gameState.level++; renderLists(); }
-            updateUI();
-            if (gameState.secondsPassed % 1 === 0) save();
-        }, 1000);
 
-        function switchTab(t) {
-            document.getElementById('tab-achievements').classList.toggle('hidden', t !== 'achievements');
-            document.getElementById('tab-eggs').classList.toggle('hidden', t !== 'eggs');
-            document.getElementById('btn-achievements').classList.toggle('bg-white/10', t === 'achievements');
-            document.getElementById('btn-eggs').classList.toggle('bg-white/10', t === 'eggs');
+
+        function checkEasterEggs() {
+
+            EASTER_EGGS.forEach(egg => {
+
+                if (!gameState.foundEggs.includes(egg.id)) {
+
+                    const roll = Math.random() * 100;
+
+                    if (roll < egg.chance) {
+
+                        gameState.foundEggs.push(egg.id);
+
+                        addExp(50); // Bonus d'XP pour découverte
+
+                        spawnEggVisual(egg);
+
+                        renderEggs();
+
+                        saveToLocalStorage();
+
+                        queueNotification('Easter Egg Trouvé', egg.name, egg.color, `Rareté: ${egg.chance}% (+50 XP)`, egg.chance);
+
+                    }
+
+                }
+
+            });
+
         }
 
-        window.onload = () => { load(); updateUI(); };
+
+
+        function spawnEggVisual(egg) {
+
+            const div = document.createElement('div');
+
+            div.className = `easter-egg`;
+
+            div.style.left = `${Math.random() * 70 + 15}%`;
+
+            div.style.top = `${Math.random() * 70 + 15}%`;
+
+            div.style.color = egg.color;
+
+            div.textContent = `✦ ${egg.name}`;
+
+            document.getElementById('visual-effects').appendChild(div);
+
+            setTimeout(() => div.remove(), 4000);
+
+        }
+
+
+
+        function checkAchievements() {
+
+            ACHIEVEMENTS.forEach(ach => {
+
+                if (!gameState.achievements.includes(ach.id)) {
+
+                    if (ach.req(gameState.secondsPassed, gameState.foundEggs, gameState.level)) {
+
+                        gameState.achievements.push(ach.id);
+
+                        addExp(100); // Bonus d'XP pour succès
+
+                        renderAchievements();
+
+                        saveToLocalStorage();
+
+                        queueNotification('Succès Débloqué', ach.name, '#4f46e5', `${ach.desc} (+100 XP)`, 0.5);
+
+                    }
+
+                }
+
+            });
+
+        }
+
+
+
+        function renderAchievements() {
+
+            const container = document.getElementById('tab-achievements');
+
+            container.innerHTML = ACHIEVEMENTS.map(ach => {
+
+                const isDone = gameState.achievements.includes(ach.id);
+
+                return `
+
+                    <div class="p-3 rounded-lg border ${isDone ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-white/5 bg-white/5'} flex flex-col">
+
+                        <div class="flex justify-between items-start">
+
+                            <span class="font-bold ${isDone ? 'text-white' : 'text-gray-500'}">${ach.name}</span>
+
+                            <span class="text-[10px] mono px-2 py-0.5 rounded bg-black/40 text-gray-400">${ach.chance}</span>
+
+                        </div>
+
+                        <span class="text-xs text-gray-400 mt-1">${ach.desc}</span>
+
+                    </div>
+
+                `;
+
+            }).join('');
+
+        }
+
+
+
+        function renderEggs() {
+
+            const container = document.getElementById('tab-eggs');
+
+            container.innerHTML = EASTER_EGGS.map(egg => {
+
+                const found = gameState.foundEggs.includes(egg.id);
+
+                return `
+
+                    <div class="p-3 rounded-lg border ${found ? 'border-white/20 bg-white/5' : 'border-white/5 bg-white/5 opacity-40'} flex justify-between items-center">
+
+                        <div class="flex flex-col">
+
+                            <span class="text-sm font-medium" style="color: ${found ? egg.color : '#444'}">${found ? egg.name : '?? ?????'}</span>
+
+                            <span class="text-[10px] text-gray-500">${egg.chance}% de chance</span>
+
+                        </div>
+
+                        <span class="text-xl">${found ? '✦' : ' '}</span>
+
+                    </div>
+
+                `;
+
+            }).join('');
+
+        }
+
+
+
+        // --- GESTION DES NOTIFICATIONS ---
+
+        function queueNotification(title, name, color, extra, rarityVal) {
+
+            notificationQueue.push({ title, name, color, extra, rarityVal });
+
+            processQueue();
+
+        }
+
+
+
+        function processQueue() {
+
+            if (isNotificationActive || notificationQueue.length === 0) return;
+
+            isNotificationActive = true;
+
+            const data = notificationQueue.shift();
+
+            showNotification(data);
+
+        }
+
+
+
+        function showNotification({ title, name, color, extra, rarityVal }) {
+
+            playDiscoverySound(rarityVal || 1);
+
+            const toast = document.createElement('div');
+
+            toast.className = 'success-toast';
+
+            toast.style.borderLeftColor = color;
+
+            
+
+            toast.innerHTML = `
+
+                <div class="flex flex-col gap-1">
+
+                    <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">${title}</span>
+
+                    <span class="text-lg font-bold text-white" style="text-shadow: 0 0 10px ${color}44">${name}</span>
+
+                    <div class="h-[1px] w-full bg-white/10 my-1"></div>
+
+                    <span class="text-xs text-gray-400 italic">${extra}</span>
+
+                </div>
+
+                <div class="absolute top-2 right-3 opacity-20">
+
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5">
+
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+
+                    </svg>
+
+                </div>
+
+            `;
+
+            
+
+            document.getElementById('notifications-container').appendChild(toast);
+
+            
+
+            setTimeout(() => {
+
+                toast.style.animation = 'slide-out 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+
+                setTimeout(() => {
+
+                    toast.remove();
+
+                    isNotificationActive = false;
+
+                    processQueue();
+
+                }, 500);
+
+            }, 3500);
+
+        }
+
+
+
+        window.switchTab = (tab) => {
+
+            const btnAch = document.getElementById('btn-achievements');
+
+            const btnEgg = document.getElementById('btn-eggs');
+
+            
+
+            document.getElementById('tab-achievements').classList.toggle('hidden', tab !== 'achievements');
+
+            document.getElementById('tab-eggs').classList.toggle('hidden', tab !== 'eggs');
+
+            
+
+            // Update Achievement Button
+
+            btnAch.classList.toggle('bg-white/10', tab === 'achievements');
+
+            btnAch.querySelector('svg').classList.toggle('text-indigo-400', tab === 'achievements');
+
+            btnAch.querySelector('svg').classList.toggle('text-gray-400', tab !== 'achievements');
+
+            
+
+            // Update Egg Button
+
+            btnEgg.classList.toggle('bg-white/10', tab === 'eggs');
+
+            btnEgg.querySelector('svg').classList.toggle('text-white', tab === 'eggs');
+
+            btnEgg.querySelector('svg').classList.toggle('text-gray-400', tab !== 'eggs');
+
+        };
+
+
+
+        window.onload = init;
+
     </script>
+
 </body>
+
 </html>
