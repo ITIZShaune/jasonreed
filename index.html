@@ -23,7 +23,6 @@
             width: 100vw;
         }
 
-        /* --- BACKGROUND LOGIC --- */
         #bg-canvas {
             position: fixed;
             top: 0;
@@ -56,7 +55,6 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
         }
 
-        /* --- EXPERIENCE BAR --- */
         .exp-container {
             width: 100%;
             height: 4px;
@@ -78,7 +76,6 @@
             box-shadow: 0 0 60px -15px rgba(99, 102, 241, 0.15);
         }
 
-        /* --- MODAL SYSTEM --- */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -105,7 +102,6 @@
             border-radius: 10px;
         }
 
-        /* --- ANIMATIONS --- */
         @keyframes level-up {
             0% { transform: scale(1); filter: brightness(1); }
             50% { transform: scale(1.05); filter: brightness(1.5) drop-shadow(0 0 20px var(--accent)); }
@@ -138,7 +134,6 @@
     <canvas id="bg-canvas"></canvas>
     <div class="nebula"></div>
 
-    <!-- Interface Principale -->
     <div id="app" class="relative z-10 w-full max-w-4xl h-full flex flex-col items-center justify-center gap-6 md:gap-10 p-4 md:p-6 overflow-y-auto lg:overflow-hidden">
         
         <header class="text-center space-y-2 md:space-y-3">
@@ -146,7 +141,6 @@
             <p class="text-indigo-300/50 text-[10px] md:text-xs tracking-widest uppercase mono">Laisse le temps s'écouler dans le néant</p>
         </header>
 
-        <!-- Niveau & Progrès -->
         <div class="w-full max-w-xs md:max-w-md space-y-3 md:space-y-4">
             <div class="flex justify-between items-end px-1">
                 <div class="flex flex-col">
@@ -162,7 +156,6 @@
             </div>
         </div>
 
-        <!-- Timer Central -->
         <div class="relative">
             <div id="timer-container" class="glass-panel w-48 h-48 md:w-80 md:h-80 rounded-full flex flex-col items-center justify-center border-indigo-500/10 timer-glow transition-all duration-500">
                 <span id="main-timer" class="text-3xl md:text-5xl font-extralight mono tracking-tight text-white/90">00:00:00</span>
@@ -171,7 +164,6 @@
             </div>
         </div>
 
-        <!-- Statistiques -->
         <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 w-full max-w-2xl px-2">
             <div class="glass-panel p-3 md:p-4 rounded-2xl flex flex-col items-center">
                 <span class="text-[8px] md:text-[9px] text-white/40 uppercase tracking-widest mb-1">Collection</span>
@@ -187,7 +179,6 @@
             </div>
         </div>
 
-        <!-- Navigation par Boutons (Modales) -->
         <div class="flex gap-3 md:gap-4 pb-4">
             <button onclick="openModal('achievements')" class="glass-panel px-6 md:px-8 py-2 md:py-3 rounded-full text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-white/5 transition-all">
                 Succès
@@ -223,7 +214,6 @@
     <div id="notifications-container"></div>
 
     <script>
-        // --- ANIMATION FOND ET RESPONSIVITÉ ---
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -272,7 +262,6 @@
         resize(); 
         animate();
 
-        // --- DATA ---
         const EASTER_EGGS = [
             { id: 1, name: "Une ombre passe...", chance: 1, color: "#94a3b8" },
             { id: 2, name: "Un murmure lointain", chance: 0.5, color: "#cbd5e1" },
@@ -323,8 +312,8 @@
         let notificationQueue = [];
         let isNotificationActive = false;
         let audioCtx = null;
+        let needsListUpdate = true; // Flag d'optimisation pour le rendu des listes
 
-        // --- CORE LOGIC ---
         function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         function playSound(rarity) {
             if (!gameState.soundEnabled) return;
@@ -367,7 +356,6 @@
             document.getElementById('exp-bar').style.width = `${(gameState.currentExp / currentReq) * 100}%`;
         }
 
-        // Sauvegarde immédiate dans le localStorage
         function save() { 
             localStorage.setItem('abysse_save_v2', JSON.stringify(gameState)); 
         }
@@ -375,7 +363,7 @@
         function load() {
             const saved = localStorage.getItem('abysse_save_v2');
             if (saved) { try { gameState = { ...gameState, ...JSON.parse(saved) }; } catch(e) {} }
-            updateExpUI(); updateUI(); renderLists();
+            updateExpUI(); updateUI(); needsListUpdate = true;
         }
 
         function updateUI() {
@@ -399,7 +387,7 @@
                 if (!gameState.foundEggs.includes(egg.id)) {
                     if (Math.random() * 100 < egg.chance) {
                         gameState.foundEggs.push(egg.id);
-                        addExp(50); renderLists(); save();
+                        addExp(50); needsListUpdate = true; save();
                         queueNotification('Anomalie', egg.name, egg.color, `Rarité: ${egg.chance}%`, egg.chance);
                     }
                 }
@@ -407,18 +395,23 @@
         }
 
         function checkAchievements() {
+            let changed = false;
             ACHIEVEMENTS.forEach(ach => {
                 if (!gameState.achievements.includes(ach.id)) {
                     if (ach.req(gameState.secondsPassed, gameState.foundEggs, gameState.level)) {
                         gameState.achievements.push(ach.id);
-                        addExp(100); renderLists(); save();
+                        addExp(100); changed = true; save();
                         queueNotification('Succès', ach.name, '#6366f1', ach.desc, 0.5);
                     }
                 }
             });
+            if(changed) needsListUpdate = true;
         }
 
+        // Fonction de rendu optimisée : appelée seulement si nécessaire
         function renderLists() {
+            if (!needsListUpdate) return;
+            
             document.getElementById('list-achievements').innerHTML = ACHIEVEMENTS.map(ach => {
                 const done = gameState.achievements.includes(ach.id);
                 return `
@@ -439,6 +432,8 @@
                         <span class="text-lg" style="color: ${egg.color}">${found ? '✦' : '◇'}</span>
                     </div>`;
             }).join('');
+            
+            needsListUpdate = false;
         }
 
         function queueNotification(title, name, color, extra, rarityVal) {
@@ -466,8 +461,11 @@
             }, 3500);
         }
 
-        // --- MODAL CONTROLS ---
-        window.openModal = (id) => { document.getElementById('modal-' + id).classList.add('active'); };
+        // --- MODAL CONTROLS OPTIMISÉS ---
+        window.openModal = (id) => { 
+            renderLists(); // On s'assure que le contenu est à jour avant d'afficher
+            document.getElementById('modal-' + id).classList.add('active'); 
+        };
         window.closeModal = (id) => { document.getElementById('modal-' + id).classList.remove('active'); };
 
         window.onload = () => {
@@ -477,7 +475,6 @@
                 addExp(1); 
                 updateUI(); 
                 checkAchievements();
-                // Sauvegarde systématique toutes les secondes
                 save(); 
             }, 1000);
             setInterval(checkEasterEggs, 5000);
