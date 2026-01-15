@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>L'Abysse du Vide - AFK Experience</title>
+    <title>L'Abysse du Vide</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700&family=Space+Mono&display=swap');
@@ -19,7 +19,7 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             overflow: hidden;
             margin: 0;
-            height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            height: 100dvh;
             width: 100vw;
         }
 
@@ -126,7 +126,6 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Responsive scaling for different screen heights */
         @media (max-height: 700px) {
             #app { gap: 1.5rem !important; }
             #timer-container { width: 12rem !important; height: 12rem !important; }
@@ -232,7 +231,7 @@
         function resize() { 
             canvas.width = window.innerWidth; 
             canvas.height = window.innerHeight; 
-            createStars(); // Recreate stars to fill new dimensions
+            createStars(); 
         }
 
         class Star {
@@ -259,7 +258,7 @@
 
         function createStars() { 
             particles = []; 
-            const count = Math.floor((canvas.width * canvas.height) / 8000); // Dynamic count based on screen area
+            const count = Math.floor((canvas.width * canvas.height) / 8000);
             for (let i = 0; i < Math.min(count, 300); i++) particles.push(new Star()); 
         }
 
@@ -368,7 +367,11 @@
             document.getElementById('exp-bar').style.width = `${(gameState.currentExp / currentReq) * 100}%`;
         }
 
-        function save() { localStorage.setItem('abysse_save_v2', JSON.stringify(gameState)); }
+        // Sauvegarde immédiate dans le localStorage
+        function save() { 
+            localStorage.setItem('abysse_save_v2', JSON.stringify(gameState)); 
+        }
+        
         function load() {
             const saved = localStorage.getItem('abysse_save_v2');
             if (saved) { try { gameState = { ...gameState, ...JSON.parse(saved) }; } catch(e) {} }
@@ -474,7 +477,8 @@
                 addExp(1); 
                 updateUI(); 
                 checkAchievements();
-                if (gameState.secondsPassed % 5 === 0) save();
+                // Sauvegarde systématique toutes les secondes
+                save(); 
             }, 1000);
             setInterval(checkEasterEggs, 5000);
         };
