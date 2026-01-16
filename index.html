@@ -98,6 +98,13 @@
 <body class="min-h-screen flex flex-col items-center py-6 md:py-12 px-4 md:px-6">
     <canvas id="canvas-bg"></canvas>
 
+    <button onclick="hardReset()" class="fixed top-4 right-4 z-[100] text-[8px] md:text-[9px] uppercase tracking-widest text-red-500/50 hover:text-red-500 transition-colors flex items-center gap-1">
+        <span class="md:inline hidden">Réinitialiser</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+    </button>
+
     <div id="app" class="max-w-4xl w-full flex flex-col items-center gap-6 md:gap-10 relative z-10">
         
         <header class="text-center space-y-4">
@@ -215,36 +222,33 @@
         ];
 
         const ACHIEVEMENTS = [
-            // ORIGINAUX
             { id: 't_1m', name: "Nouveau-né", desc: "Exister 1 minute", req: (s) => s >= 60 },
-            { id: 't_1h', name: "Patient", desc: "Exister 1 heure", req: (s) => s >= 3600 },
-            { id: 'e_1', name: "L'éveil", desc: "Trouver votre premier Easter Egg", req: (s, e) => e.length >= 1 },
-            { id: 'l_50', name: "Souverain de l'Infini", desc: "Atteindre le niveau 50", req: (s, e, l) => l >= 50 },
-            { id: 'res_1', name: "Le Grand Saut", desc: "Effectuer votre première résonance", req: (s, e, l, r) => r >= 1 },
-            { id: 'res_5', name: "Fréquence Stable", desc: "Effectuer 5 résonances", req: (s, e, l, r) => r >= 5 },
-            { id: 'res_10', name: "Maître de l'Abysse", desc: "Effectuer 10 résonances", req: (s, e, l, r) => r >= 10 },
-            
-            // 20 NOUVEAUX SUCCÈS
             { id: 't_10m', name: "Contemplateur", desc: "Exister 10 minutes", req: (s) => s >= 600 },
+            { id: 't_1h', name: "Patient", desc: "Exister 1 heure", req: (s) => s >= 3600 },
             { id: 't_24h', name: "L'Immuable", desc: "Exister 24 heures au total", req: (s) => s >= 86400 },
             { id: 'l_10', name: "Ascension", desc: "Atteindre le niveau 10", req: (s, e, l) => l >= 10 },
+            { id: 'fast_lv', name: "Flash", desc: "Atteindre le niveau 20", req: (s, e, l) => l >= 20 },
+            { id: 'l_50', name: "Souverain de l'Infini", desc: "Atteindre le niveau 50", req: (s, e, l) => l >= 50 },
             { id: 'l_100', name: "Demi-Dieu", desc: "Atteindre le niveau 100", req: (s, e, l) => l >= 100 },
             { id: 'l_250', name: "Entité Pure", desc: "Atteindre le niveau 250", req: (s, e, l) => l >= 250 },
+            { id: 'e_1', name: "L'éveil", desc: "Trouver votre premier Easter Egg", req: (s, e) => e.length >= 1 },
             { id: 'e_5', name: "Collectionneur", desc: "Trouver 5 reliques différentes", req: (s, e) => e.length >= 5 },
             { id: 'e_15', name: "Archéologue du Vide", desc: "Trouver 15 reliques différentes", req: (s, e) => e.length >= 15 },
             { id: 'e_all', name: "Omniscience", desc: "Trouver toutes les reliques (25)", req: (s, e) => e.length >= 25 },
             { id: 'ano_1', name: "Chasseur de Failles", desc: "Capturer une anomalie", req: (s, e, l, r, a) => a >= 1 },
+            { id: 'click_master', name: "Réactivité", desc: "Capturer 10 anomalies", req: (s, e, l, r, a) => a >= 10 },
             { id: 'ano_50', name: "Intercepteur", desc: "Capturer 50 anomalies", req: (s, e, l, r, a) => a >= 50 },
             { id: 'ano_100', name: "Gardien des Réalités", desc: "Capturer 100 anomalies", req: (s, e, l, r, a) => a >= 100 },
+            { id: 'res_1', name: "Le Grand Saut", desc: "Effectuer votre première résonance", req: (s, e, l, r) => r >= 1 },
+            { id: 'res_5', name: "Fréquence Stable", desc: "Effectuer 5 résonances", req: (s, e, l, r) => r >= 5 },
+            { id: 'res_10', name: "Maître de l'Abysse", desc: "Effectuer 10 résonances", req: (s, e, l, r) => r >= 10 },
+            { id: 'res_25', name: "Éternel Retour", desc: "Effectuer 25 résonances", req: (s, e, l, r) => r >= 25 },
             { id: 'frag_10', name: "Éclats de Pouvoir", desc: "Cumuler 10 Fragments de Vide", req: (s, e, l, r, a, f) => f >= 10 },
             { id: 'frag_100', name: "Richesse Absolue", desc: "Cumuler 100 Fragments de Vide", req: (s, e, l, r, a, f) => f >= 100 },
+            { id: 'rich_start', name: "Héritage", desc: "Avoir plus de 50 fragments", req: (s, e, l, r, a, f) => f >= 50 },
             { id: 'tal_1', name: "Apprenti", desc: "Améliorer un talent", req: (s, e, l, r, a, f, t) => (t.xp + t.eggs + t.fortune) >= 1 },
             { id: 'tal_max', name: "Spécialiste", desc: "Monter un talent au niveau 10", req: (s, e, l, r, a, f, t) => t.xp >= 10 || t.eggs >= 10 || t.fortune >= 10 },
-            { id: 'res_25', name: "Éternel Retour", desc: "Effectuer 25 résonances", req: (s, e, l, r) => r >= 25 },
-            { id: 'fast_lv', name: "Flash", desc: "Atteindre le niveau 20 (Vérifié chaque seconde)", req: (s, e, l) => l >= 20 },
-            { id: 'click_master', name: "Réactivité", desc: "Capturer 10 anomalies dans la même session", req: (s, e, l, r, a) => a >= 10 },
-            { id: 'rich_start', name: "Héritage", desc: "Commencer une vie avec plus de 50 fragments", req: (s, e, l, r, a, f) => f >= 50 && r >= 1 },
-            { id: 'complete', name: "L'Abysse vous salue", desc: "Avoir 20 succès déverrouillés", req: (s, e, l, r, a, f, t, ach) => ach >= 20 }
+            { id: 'complete', name: "L'Abysse vous salue", desc: "Débloquer 20 succès", req: (s, e, l, r, a, f, t, ach) => ach >= 20 }
         ];
 
         let gameState = {
@@ -279,6 +283,15 @@
 
             setInterval(maybeSpawnAnomaly, 10000);
             setInterval(checkEasterEggs, 5000);
+        }
+
+        function hardReset() {
+            if (confirm("🚨 ATTENTION : Voulez-vous vraiment effacer TOUTE votre progression ? (Niveaux, Fragments, Succès, Reliques)")) {
+                if (confirm("Dernière confirmation : Cette action est irréversible !")) {
+                    localStorage.removeItem('abysse_exp_v3');
+                    location.reload();
+                }
+            }
         }
 
         function addExp(amount) {
@@ -345,7 +358,6 @@
         function checkAchievements() {
             ACHIEVEMENTS.forEach(ach => {
                 if (!gameState.achievements.includes(ach.id)) {
-                    // Passage des arguments étendus pour les nouveaux succès
                     if (ach.req(
                         gameState.totalSeconds, 
                         gameState.foundEggs, 
@@ -431,8 +443,11 @@
                 document.getElementById('fragments-count').textContent = gameState.fragments;
                 document.getElementById('res-count').textContent = gameState.prestigeCount;
                 document.getElementById('multiplier-display').textContent = (1 + gameState.fragments * 0.1).toFixed(1);
+            } else {
+                document.getElementById('prestige-stats').classList.add('hidden');
             }
             if (gameState.level >= 50) document.getElementById('prestige-zone').classList.remove('hidden');
+            else document.getElementById('prestige-zone').classList.add('hidden');
         }
 
         function updateExpUI() {
