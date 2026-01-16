@@ -1,1113 +1,555 @@
 <!DOCTYPE html>
-
 <html lang="fr">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>L'Abysse du Vide - AFK Expérience</title>
-
+    <title>L'Abysse du Vide - Expansion</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
-
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono&display=swap');
-
         
-
         body {
-
             background-color: #050505;
-
             color: #e5e5e5;
-
             font-family: 'Inter', sans-serif;
-
             overflow-x: hidden;
-
+            user-select: none;
         }
-
-
 
         .mono { font-family: 'Space Mono', monospace; }
 
-
-
         .glow-text {
-
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-
         }
-
-
 
         .abyss-gradient {
-
             background: radial-gradient(circle at center, #111 0%, #050505 100%);
-
         }
-
-
 
         .easter-egg {
-
             position: fixed;
-
             pointer-events: none;
-
             z-index: 50;
-
             animation: fade-out 4s forwards;
-
             font-weight: bold;
-
             text-shadow: 0 0 15px rgba(0,0,0,0.8);
-
             font-size: 1.5rem;
-
         }
-
-
 
         @keyframes fade-out {
-
             0% { opacity: 0; transform: translateY(20px) scale(0.8); }
-
             10% { opacity: 1; transform: translateY(0) scale(1.1); }
-
             15% { transform: scale(1); }
-
             80% { opacity: 1; }
-
             100% { opacity: 0; transform: translateY(-40px); }
-
         }
-
-
 
         .success-toast {
-
             position: fixed;
-
             bottom: 30px;
-
             right: 30px;
-
             background: rgba(20, 20, 20, 0.95);
-
             backdrop-filter: blur(10px);
-
             border: 1px solid rgba(255, 255, 255, 0.1);
-
             padding: 1.5rem;
-
             border-radius: 12px;
-
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-
             z-index: 100;
-
             width: 320px;
-
             animation: slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-
             overflow: hidden;
-
-            pointer-events: none;
-
         }
-
-
 
         .success-toast::before {
-
             content: '';
-
             position: absolute;
-
             top: 0;
-
             left: 0;
-
             width: 4px;
-
             height: 100%;
-
             background: #4f46e5;
-
         }
-
-
 
         @keyframes slide-in {
-
             from { transform: translateX(120%); opacity: 0; }
-
             to { transform: translateX(0); opacity: 1; }
-
         }
-
-
 
         @keyframes slide-out {
-
             from { transform: translateX(0); opacity: 1; }
-
             to { transform: translateX(120%); opacity: 0; }
-
         }
-
-
-
-        /* Exp Bar styles */
 
         .exp-container {
-
             width: 100%;
-
             height: 6px;
-
             background: rgba(255, 255, 255, 0.05);
-
             border-radius: 10px;
-
             overflow: hidden;
-
             position: relative;
-
         }
-
         .exp-fill {
-
             height: 100%;
-
             background: linear-gradient(90deg, #4f46e5, #818cf8);
-
             width: 0%;
-
             transition: width 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
-
             box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
-
         }
-
-
 
         .level-up-anim {
-
             animation: level-up 1s ease-out forwards;
-
         }
-
-
 
         @keyframes level-up {
-
             0% { transform: scale(1); filter: brightness(1); }
-
-            50% { transform: scale(1.1); filter: brightness(2); }
-
+            50% { transform: scale(1.2); filter: brightness(2); }
             100% { transform: scale(1); filter: brightness(1); }
-
         }
 
-
-
-        /* Custom Scrollbar */
-
-        .custom-scrollbar::-webkit-scrollbar {
-
-            width: 4px;
-
+        .anomaly {
+            position: fixed;
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle, #fff 0%, transparent 70%);
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 40;
+            filter: blur(3px);
+            animation: pulse-anomaly 2s infinite alternate;
         }
 
-        .custom-scrollbar::-webkit-scrollbar-track {
-
-            background: rgba(255, 255, 255, 0.05);
-
+        @keyframes pulse-anomaly {
+            from { transform: scale(0.8); opacity: 0.3; }
+            to { transform: scale(1.2); opacity: 0.8; }
         }
 
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-
-            background: rgba(255, 255, 255, 0.2);
-
-            border-radius: 10px;
-
-        }
-
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
     </style>
-
 </head>
+<body class="abyss-gradient min-h-screen flex flex-col items-center py-10 px-4">
 
-<body class="abyss-gradient min-h-screen flex flex-col items-center justify-center p-4">
-
-
-
-    <div id="app" class="max-w-4xl w-full flex flex-col items-center gap-10">
-
+    <div id="app" class="max-w-4xl w-full flex flex-col items-center gap-8">
         
-
         <header class="text-center space-y-2">
-
-            <h1 class="text-5xl font-light tracking-tighter glow-text">L'ABYSSE DU VIDE</h1>
-
-            <p class="text-gray-500 italic">"Le temps est la seule ressource que vous ne pouvez pas acheter."</p>
-
-            <div class="pt-2">
-
+            <h1 class="text-5xl font-light tracking-tighter glow-text uppercase">L'Abysse du Vide</h1>
+            <p class="text-gray-500 italic">"Sombrez pour mieux régner."</p>
+            <div class="flex justify-center gap-4 pt-2">
                 <button onclick="toggleSound()" id="sound-toggle" class="text-[10px] uppercase tracking-widest border border-white/20 px-3 py-1 rounded-full hover:bg-white/5 transition">
-
                     Sons : Activés
-
                 </button>
-
+                <div id="prestige-zone" class="hidden">
+                    <button onclick="prestige()" class="text-[10px] bg-indigo-600 text-white uppercase tracking-widest px-3 py-1 rounded-full hover:bg-indigo-500 transition animate-pulse">
+                        Résonance Disponible
+                    </button>
+                </div>
             </div>
-
         </header>
 
-
+        <!-- Stats de Prestige -->
+        <div id="prestige-stats" class="hidden flex gap-4 text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-bold">
+            <span>Fragments: <span id="fragments-count">0</span></span>
+            <span>Multiplier: x<span id="multiplier-display">1.0</span></span>
+            <span>Résonances: <span id="res-count">0</span></span>
+        </div>
 
         <!-- Système de Niveau -->
-
         <div class="w-full max-w-md space-y-3">
-
             <div class="flex justify-between items-end px-1">
-
                 <div class="flex items-baseline gap-2">
-
                     <span class="text-xs uppercase tracking-widest text-gray-500">Niveau</span>
-
-                    <span id="level-display" class="text-3xl font-bold mono leading-none">1</span>
-
+                    <span id="level-display" class="text-3xl font-bold mono leading-none text-white">1</span>
                 </div>
-
                 <div class="text-[10px] uppercase tracking-widest text-gray-400 mono">
-
                     <span id="exp-current">0</span> / <span id="exp-next">100</span> XP
-
                 </div>
-
             </div>
-
             <div class="exp-container">
-
                 <div id="exp-bar" class="exp-fill"></div>
-
             </div>
-
+            <div class="flex justify-between text-[9px] uppercase tracking-wider text-gray-600 px-1">
+                <span>Points de Talent: <span id="talent-points" class="text-gray-400">0</span></span>
+                <span>Anomalies capturées: <span id="stat-anomalies" class="text-gray-400">0</span></span>
+            </div>
         </div>
-
-
 
         <!-- Timer Central -->
-
-        <div class="relative group">
-
-            <div class="absolute -inset-1 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-
-            <div class="relative bg-black border border-white/10 w-64 h-64 md:w-80 md:h-80 rounded-full flex flex-col items-center justify-center shadow-2xl">
-
-                <span id="main-timer" class="text-4xl md:text-5xl font-bold mono">00:00:00</span>
-
-                <span class="text-xs uppercase tracking-widest text-gray-500 mt-2">Temps d'existence</span>
-
+        <div class="relative group cursor-default">
+            <div id="timer-glow" class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur opacity-10 group-hover:opacity-30 transition duration-1000"></div>
+            <div class="relative bg-black border border-white/10 w-56 h-56 md:w-64 md:h-64 rounded-full flex flex-col items-center justify-center shadow-2xl">
+                <span id="main-timer" class="text-3xl md:text-4xl font-bold mono">00:00:00</span>
+                <span class="text-[10px] uppercase tracking-widest text-gray-500 mt-2">Existence actuelle</span>
             </div>
-
         </div>
 
+        <!-- Navigation Onglets -->
+        <div class="flex flex-wrap justify-center gap-2 mb-2">
+            <button id="nav-achievements" onclick="switchTab('achievements')" class="px-4 py-2 rounded-full border border-white/10 bg-white/10 text-xs uppercase tracking-widest transition">Succès</button>
+            <button id="nav-talents" onclick="switchTab('talents')" class="px-4 py-2 rounded-full border border-white/10 text-xs uppercase tracking-widest transition">Talents</button>
+            <button id="nav-eggs" onclick="switchTab('eggs')" class="px-4 py-2 rounded-full border border-white/10 text-xs uppercase tracking-widest transition">Collection</button>
+        </div>
 
-
-        <!-- Statistiques -->
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-2xl">
-
-            <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center">
-
-                <p class="text-xs text-gray-400 uppercase">Easter Eggs Trouvés</p>
-
-                <p id="stat-eggs" class="text-2xl font-semibold mono">0 / 25</p>
-
-            </div>
-
-            <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center flex flex-col items-center justify-center">
-
-                <div class="flex items-center gap-2">
-
-                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-
-                    <p class="text-xs text-gray-400 uppercase">Sauvegarde Locale</p>
-
+        <!-- Contenu Onglets -->
+        <div class="w-full max-w-2xl min-h-[300px]">
+            <div id="tab-achievements" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar"></div>
+            
+            <div id="tab-talents" class="hidden space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white/5 border border-white/10 p-4 rounded-xl space-y-3">
+                        <h3 class="text-indigo-400 text-xs font-bold uppercase tracking-tighter">Éternité</h3>
+                        <p class="text-[10px] text-gray-400">Gain d'XP passive.</p>
+                        <button onclick="buyTalent('xp')" class="w-full py-2 bg-white/5 border border-white/20 rounded hover:bg-white/10 text-[10px] transition disabled:opacity-30" id="t-xp">
+                            Flux de Vide (+20%) <br> <span class="text-indigo-300">1 PT</span>
+                        </button>
+                    </div>
+                    <div class="bg-white/5 border border-white/10 p-4 rounded-xl space-y-3">
+                        <h3 class="text-purple-400 text-xs font-bold uppercase tracking-tighter">Observation</h3>
+                        <p class="text-[10px] text-gray-400">Rareté des Eggs.</p>
+                        <button onclick="buyTalent('eggs')" class="w-full py-2 bg-white/5 border border-white/20 rounded hover:bg-white/10 text-[10px] transition disabled:opacity-30" id="t-eggs">
+                            Sixième Sens (+15%) <br> <span class="text-purple-300">1 PT</span>
+                        </button>
+                    </div>
+                    <div class="bg-white/5 border border-white/10 p-4 rounded-xl space-y-3">
+                        <h3 class="text-emerald-400 text-xs font-bold uppercase tracking-tighter">Fortune</h3>
+                        <p class="text-[10px] text-gray-400">Fréquence Anomalies.</p>
+                        <button onclick="buyTalent('fortune')" class="w-full py-2 bg-white/5 border border-white/20 rounded hover:bg-white/10 text-[10px] transition disabled:opacity-30" id="t-fortune">
+                            Appel Instable (+30%) <br> <span class="text-emerald-300">1 PT</span>
+                        </button>
+                    </div>
                 </div>
-
-                <p class="text-[10px] text-gray-600 mt-1">Auto-save toutes les 5s</p>
-
             </div>
 
-            <div class="bg-white/5 border border-white/10 p-4 rounded-xl text-center">
-
-                <p class="text-xs text-gray-400 uppercase">Rareté Actuelle</p>
-
-                <p id="stat-rarity" class="text-2xl font-semibold mono text-gray-400">Néant</p>
-
-            </div>
-
+            <div id="tab-eggs" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar"></div>
         </div>
-
-
-
-        <!-- Onglets -->
-
-        <div class="w-full">
-
-            <div class="flex justify-center gap-4 mb-6">
-
-                <button id="btn-achievements" onclick="switchTab('achievements')" class="flex items-center gap-2 px-6 py-2 rounded-full border border-white/10 bg-white/10 transition group">
-
-                    <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55.47.98.97 1.21C11.47 18.44 12 19 12 19s.53-.56 1.03-.79c.5-.23.97-.66.97-1.21v-2.34"></path><path d="M12 2v12"></path><path d="M7 2h10"></path></svg>
-
-                    <span>Succès</span>
-
-                </button>
-
-                <button id="btn-eggs" onclick="switchTab('eggs')" class="flex items-center gap-2 px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 transition group">
-
-                    <svg class="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><path d="M2 12h20"></path></svg>
-
-                    <span>Collection</span>
-
-                </button>
-
-            </div>
-
-
-
-            <div id="tab-achievements" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar"></div>
-
-            <div id="tab-eggs" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar"></div>
-
-        </div>
-
     </div>
 
-
-
-    <!-- Conteneur pour une seule notification à la fois -->
-
     <div id="notifications-container"></div>
-
     <div id="visual-effects"></div>
 
-
-
     <script>
-
-        // --- DONNÉES DU JEU ---
-
+        // --- DONNÉES ---
         const EASTER_EGGS = [
-
             { id: 1, name: "Une ombre passe...", chance: 1, color: "#9ca3af" },
-
             { id: 2, name: "Un murmure lointain", chance: 0.5, color: "#d1d5db" },
-
             { id: 3, name: "Flash de lumière", chance: 0.3, color: "#ffffff" },
-
             { id: 4, name: "Écho du temps", chance: 0.2, color: "#93c5fd" },
-
             { id: 5, name: "Poussière d'étoile", chance: 0.15, color: "#fef08a" },
-
             { id: 6, name: "Vibration quantique", chance: 0.1, color: "#c084fc" },
-
             { id: 7, name: "Erreur système", chance: 0.08, color: "#ef4444" },
-
             { id: 8, name: "Regard du vide", chance: 0.05, color: "#4f46e5" },
-
             { id: 9, name: "Singularité", chance: 0.04, color: "#312e81" },
-
             { id: 10, name: "Déjà-vu", chance: 0.03, color: "#34d399" },
-
             { id: 11, name: "L'œil d'Odin", chance: 0.02, color: "#3b82f6" },
-
             { id: 12, name: "Code source visible", chance: 0.015, color: "#22c55e" },
-
             { id: 13, name: "Le chat de Schrödinger", chance: 0.01, color: "#fb923c" },
-
             { id: 14, name: "Onde gravitationnelle", chance: 0.008, color: "#67e8f9" },
-
             { id: 15, name: "Paradoxe temporel", chance: 0.007, color: "#f43f5e" },
-
             { id: 16, name: "Fragment d'éternité", chance: 0.006, color: "#fcd34d" },
-
             { id: 17, name: "Battement du CPU", chance: 0.005, color: "#dc2626" },
-
             { id: 18, name: "Une pensée pour toi", chance: 0.004, color: "#f472b6" },
-
             { id: 19, name: "L'appel de Cthulhu", chance: 0.003, color: "#0d9488" },
-
             { id: 20, name: "Zéro Absolu", chance: 0.002, color: "#bae6fd" },
-
             { id: 21, name: "La Réponse (42)", chance: 0.001, color: "#818cf8" },
-
             { id: 22, name: "Apparition du Créateur", chance: 0.0008, color: "#eab308" },
-
             { id: 23, name: "Supernova silencieuse", chance: 0.0005, color: "#ea580c" },
-
             { id: 24, name: "Collision dimensionnelle", chance: 0.0002, color: "#d946ef" },
-
             { id: 25, name: "L'Alpha et l'Oméga", chance: 0.0001, color: "#f8fafc" }
-
         ];
-
-
 
         const ACHIEVEMENTS = [
-
-            // Succès temporels
-
-            { id: 't_1m', name: "Nouveau-né", desc: "Exister 1 minute", req: (s) => s >= 60, chance: "100%" },
-
-            { id: 't_10m', name: "Observateur", desc: "Exister 10 minutes", req: (s) => s >= 600, chance: "100%" },
-
-            { id: 't_1h', name: "Patient", desc: "Exister 1 heure", req: (s) => s >= 3600, chance: "100%" },
-
-            { id: 't_5h', name: "Anachorète", desc: "Exister 5 heures", req: (s) => s >= 18000, chance: "100%" },
-
-            
-
-            // Succès de collection
-
-            { id: 'e_1', name: "L'éveil", desc: "Trouver votre premier Easter Egg", req: (s, e) => e.length >= 1, chance: "Commun" },
-
-            { id: 'e_10', name: "Collectionneur", desc: "Trouver 10 Easter Eggs", req: (s, e) => e.length >= 10, chance: "Rare" },
-
-            { id: 'e_20', name: "Maître du Néant", desc: "Trouver 20 Easter Eggs", req: (s, e) => e.length >= 20, chance: "Légendaire" },
-
-            { id: 'e_rare', name: "L'Impossible", desc: "Trouver l'Alpha et l'Oméga", req: (s, e) => e.includes(25), chance: "Extrême" },
-
-
-
-            // Succès de Niveaux (Nouveaux)
-
-            { id: 'l_5', name: "Apprenti du Vide", desc: "Atteindre le niveau 5", req: (s, e, l) => l >= 5, chance: "Niveau" },
-
-            { id: 'l_10', name: "Entité Stable", desc: "Atteindre le niveau 10", req: (s, e, l) => l >= 10, chance: "Niveau" },
-
-            { id: 'l_25', name: "Anomalie Majeure", desc: "Atteindre le niveau 25", req: (s, e, l) => l >= 25, chance: "Niveau" },
-
-            { id: 'l_50', name: "Souverain de l'Infini", desc: "Atteindre le niveau 50", req: (s, e, l) => l >= 50, chance: "Niveau" }
-
+            { id: 't_1m', name: "Nouveau-né", desc: "Exister 1 minute", req: (s) => s >= 60 },
+            { id: 't_1h', name: "Patient", desc: "Exister 1 heure", req: (s) => s >= 3600 },
+            { id: 'e_1', name: "L'éveil", desc: "Trouver votre premier Easter Egg", req: (s, e) => e.length >= 1 },
+            { id: 'l_50', name: "Souverain de l'Infini", desc: "Atteindre le niveau 50", req: (s, e, l) => l >= 50 },
+            // Nouveaux succès de Résonance
+            { id: 'res_1', name: "Le Grand Saut", desc: "Effectuer votre première résonance", req: (s, e, l, r) => r >= 1 },
+            { id: 'res_5', name: "Fréquence Stable", desc: "Effectuer 5 résonances", req: (s, e, l, r) => r >= 5 },
+            { id: 'res_10', name: "Maître de l'Abysse", desc: "Effectuer 10 résonances", req: (s, e, l, r) => r >= 10 }
         ];
 
-
-
-        // --- ÉTAT DU JEU ---
-
+        // --- ÉTAT ---
         let gameState = {
-
             secondsPassed: 0,
-
+            totalSeconds: 0,
             foundEggs: [],
-
             achievements: [],
-
             soundEnabled: true,
-
             level: 1,
-
-            currentExp: 0
-
+            currentExp: 0,
+            talentPoints: 0,
+            talents: { xp: 0, eggs: 0, fortune: 0 },
+            fragments: 0,
+            prestigeCount: 0,
+            anomaliesCaught: 0
         };
-
-
-
-        // Système de file d'attente pour les notifications
 
         let notificationQueue = [];
-
         let isNotificationActive = false;
-
         let audioCtx = null;
 
-
-
-        // --- AUDIO ENGINE ---
-
-        function initAudio() {
-
-            if (!audioCtx) {
-
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-            }
-
-        }
-
-
-
-        function playDiscoverySound(rarity) {
-
-            if (!gameState.soundEnabled) return;
-
-            initAudio();
-
-            
-
-            const oscillator = audioCtx.createOscillator();
-
-            const gainNode = audioCtx.createGain();
-
-
-
-            oscillator.connect(gainNode);
-
-            gainNode.connect(audioCtx.destination);
-
-
-
-            let freq = 220 + (1 / rarity) * 5; 
-
-            if (freq > 2000) freq = 2000;
-
-
-
-            oscillator.type = rarity < 0.01 ? 'sine' : 'triangle';
-
-            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-            oscillator.frequency.exponentialRampToValueAtTime(freq * 1.5, audioCtx.currentTime + 0.1);
-
-
-
-            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-
-            gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
-
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
-
-
-
-            oscillator.start();
-
-            oscillator.stop(audioCtx.currentTime + 1.5);
-
-
-
-            if (rarity < 0.1) {
-
-                const subOsc = audioCtx.createOscillator();
-
-                const subGain = audioCtx.createGain();
-
-                subOsc.connect(subGain);
-
-                subGain.connect(audioCtx.destination);
-
-                subOsc.frequency.setValueAtTime(freq * 2, audioCtx.currentTime + 0.1);
-
-                subGain.gain.setValueAtTime(0, audioCtx.currentTime + 0.1);
-
-                subGain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.15);
-
-                subGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
-
-                subOsc.start(audioCtx.currentTime + 0.1);
-
-                subOsc.stop(audioCtx.currentTime + 2);
-
-            }
-
-        }
-
-
-
-        function toggleSound() {
-
-            gameState.soundEnabled = !gameState.soundEnabled;
-
-            document.getElementById('sound-toggle').textContent = `Sons : ${gameState.soundEnabled ? 'Activés' : 'Désactivés'}`;
-
-            if (gameState.soundEnabled) initAudio();
-
-        }
-
-
-
-        // --- LOGIQUE DE PROGRESSION ---
-
-        function getExpRequired(level) {
-
-            // Formule exponentielle simple : 100 * 1.2^(level-1)
-
-            return Math.floor(100 * Math.pow(1.2, level - 1));
-
-        }
-
-
-
-        function addExp(amount) {
-
-            gameState.currentExp += amount;
-
-            let nextReq = getExpRequired(gameState.level);
-
-            
-
-            while (gameState.currentExp >= nextReq) {
-
-                gameState.currentExp -= nextReq;
-
-                gameState.level++;
-
-                nextReq = getExpRequired(gameState.level);
-
-                onLevelUp();
-
-            }
-
-            updateExpUI();
-
-        }
-
-
-
-        function onLevelUp() {
-
-            const levelEl = document.getElementById('level-display');
-
-            levelEl.classList.remove('level-up-anim');
-
-            void levelEl.offsetWidth; // Trigger reflow
-
-            levelEl.classList.add('level-up-anim');
-
-            
-
-            queueNotification('Niveau Supérieur', `Vous êtes niveau ${gameState.level}`, '#fbbf24', 'L\'influence du vide grandit', 0.1);
-
-            // Vérifier les succès immédiatement après un level up
-
-            checkAchievements();
-
-        }
-
-
-
-        function updateExpUI() {
-
-            const currentReq = getExpRequired(gameState.level);
-
-            const percentage = (gameState.currentExp / currentReq) * 100;
-
-            
-
-            document.getElementById('level-display').textContent = gameState.level;
-
-            document.getElementById('exp-current').textContent = Math.floor(gameState.currentExp);
-
-            document.getElementById('exp-next').textContent = currentReq;
-
-            document.getElementById('exp-bar').style.width = `${percentage}%`;
-
-        }
-
-
-
-        // --- LOGIQUE GÉNÉRALE ---
-
+        // --- LOGIQUE CORE ---
         function init() {
-
-            loadFromLocalStorage();
-
+            load();
             updateUI();
-
             updateExpUI();
-
             renderAchievements();
-
             renderEggs();
-
-
+            updateTalentUI();
 
             setInterval(() => {
-
                 gameState.secondsPassed++;
-
-                addExp(1); // 1 XP par seconde
-
+                gameState.totalSeconds++;
+                
+                let bonus = 1 + (gameState.talents.xp * 0.2);
+                let prestigeMult = 1 + (gameState.fragments * 0.1);
+                addExp(1 * bonus * prestigeMult);
+                
                 updateUI();
-
                 checkAchievements();
-
-                if (gameState.secondsPassed % 1 === 0) saveToLocalStorage();
-
+                if (gameState.secondsPassed % 5 === 0) save();
             }, 1000);
 
-            
-
+            setInterval(maybeSpawnAnomaly, 10000);
             setInterval(checkEasterEggs, 5000);
-
         }
 
-
-
-        function saveToLocalStorage() {
-
-            localStorage.setItem('abysse_save', JSON.stringify(gameState));
-
-        }
-
-
-
-        function loadFromLocalStorage() {
-
-            const saved = localStorage.getItem('abysse_save');
-
-            if (saved) {
-
-                try {
-
-                    const parsed = JSON.parse(saved);
-
-                    gameState = { ...gameState, ...parsed };
-
-                    if (gameState.level === undefined) gameState.level = 1;
-
-                    if (gameState.currentExp === undefined) gameState.currentExp = 0;
-
-                    
-
-                    document.getElementById('sound-toggle').textContent = `Sons : ${gameState.soundEnabled ? 'Activés' : 'Désactivés'}`;
-
-                } catch(e) { console.error("Erreur chargement save"); }
-
+        function addExp(amount) {
+            gameState.currentExp += amount;
+            let nextReq = Math.floor(100 * Math.pow(1.2, gameState.level - 1));
+            while (gameState.currentExp >= nextReq) {
+                gameState.currentExp -= nextReq;
+                gameState.level++;
+                gameState.talentPoints++;
+                nextReq = Math.floor(100 * Math.pow(1.2, gameState.level - 1));
+                onLevelUp();
             }
-
+            updateExpUI();
         }
 
-
-
-        function updateUI() {
-
-            const h = Math.floor(gameState.secondsPassed / 3600).toString().padStart(2, '0');
-
-            const m = Math.floor((gameState.secondsPassed % 3600) / 60).toString().padStart(2, '0');
-
-            const s = (gameState.secondsPassed % 60).toString().padStart(2, '0');
-
+        function onLevelUp() {
+            const el = document.getElementById('level-display');
+            el.classList.remove('level-up-anim');
+            void el.offsetWidth;
+            el.classList.add('level-up-anim');
+            updateTalentUI();
             
-
-            document.getElementById('main-timer').textContent = `${h}:${m}:${s}`;
-
-            document.getElementById('stat-eggs').textContent = `${gameState.foundEggs.length} / ${EASTER_EGGS.length}`;
-
-            
-
-            const lastEggId = gameState.foundEggs[gameState.foundEggs.length - 1];
-
-            if (lastEggId) {
-
-                const egg = EASTER_EGGS.find(e => e.id === lastEggId);
-
-                let label = "Commun";
-
-                if (egg.chance <= 0.001) label = "Divin";
-
-                else if (egg.chance <= 0.01) label = "Légendaire";
-
-                else if (egg.chance <= 0.1) label = "Rare";
-
-                
-
-                const el = document.getElementById('stat-rarity');
-
-                el.textContent = label;
-
-                el.style.color = egg.color;
-
+            if (gameState.level >= 50) {
+                document.getElementById('prestige-zone').classList.remove('hidden');
+                document.getElementById('timer-glow').classList.replace('opacity-10', 'opacity-30');
             }
-
         }
 
+        function prestige() {
+            if (gameState.level < 50) return;
+            const fragmentsToGain = Math.floor(gameState.level / 10);
 
+            if (!confirm(`Voulez-vous effectuer une Résonance ?\nVous gagnerez ${fragmentsToGain} Fragments.\nCeci réinitialisera votre niveau et votre temps actuel.`)) return;
+
+            gameState.fragments += fragmentsToGain;
+            gameState.prestigeCount++;
+            
+            // Reset
+            gameState.level = 1;
+            gameState.currentExp = 0;
+            gameState.secondsPassed = 0;
+            gameState.talentPoints = 0;
+            gameState.talents = { xp: 0, eggs: 0, fortune: 0 };
+            
+            save();
+            location.reload();
+        }
+
+        function buyTalent(id) {
+            if (gameState.talentPoints >= 1) {
+                gameState.talentPoints--;
+                gameState.talents[id]++;
+                updateTalentUI();
+                save();
+                queueNotification('Talent Acquis', id.toUpperCase(), '#4f46e5', 'L\'Abysse s\'adapte...', 0.5);
+            }
+        }
+
+        function updateTalentUI() {
+            document.getElementById('talent-points').textContent = gameState.talentPoints;
+            const values = { xp: 20, eggs: 15, fortune: 30 };
+            const names = { xp: 'Flux de Vide', eggs: 'Sixième Sens', fortune: 'Appel Instable' };
+
+            for (let id in gameState.talents) {
+                const btn = document.getElementById(`t-${id}`);
+                const lv = gameState.talents[id];
+                btn.innerHTML = `${names[id]} (v${lv})<br>+${values[id] * (lv+1)}%`;
+                btn.disabled = gameState.talentPoints < 1;
+            }
+        }
+
+        function maybeSpawnAnomaly() {
+            let baseChance = 0.1;
+            let chance = baseChance * (1 + (gameState.talents.fortune * 0.3));
+            if (Math.random() < chance) spawnAnomaly();
+        }
+
+        function spawnAnomaly() {
+            const anomaly = document.createElement('div');
+            anomaly.className = 'anomaly';
+            anomaly.style.left = `${Math.random() * 80 + 10}%`;
+            anomaly.style.top = `${Math.random() * 80 + 10}%`;
+            
+            anomaly.onclick = () => {
+                const xpGain = gameState.level * 25;
+                addExp(xpGain);
+                gameState.anomaliesCaught++;
+                document.getElementById('stat-anomalies').textContent = gameState.anomaliesCaught;
+                anomaly.remove();
+                queueNotification('Anomalie', `+${Math.floor(xpGain)} XP`, '#fff', 'Énergie capturée', 0.2);
+            };
+
+            document.body.appendChild(anomaly);
+            setTimeout(() => { if(anomaly.parentNode) anomaly.remove(); }, 6000);
+        }
 
         function checkEasterEggs() {
-
+            let bonus = 1 + (gameState.talents.eggs * 0.15);
             EASTER_EGGS.forEach(egg => {
-
                 if (!gameState.foundEggs.includes(egg.id)) {
-
-                    const roll = Math.random() * 100;
-
-                    if (roll < egg.chance) {
-
+                    if ((Math.random() * 100) < (egg.chance * bonus)) {
                         gameState.foundEggs.push(egg.id);
-
-                        addExp(50); // Bonus d'XP pour découverte
-
-                        spawnEggVisual(egg);
-
+                        addExp(50);
                         renderEggs();
-
-                        saveToLocalStorage();
-
-                        queueNotification('Easter Egg Trouvé', egg.name, egg.color, `Rareté: ${egg.chance}% (+50 XP)`, egg.chance);
-
+                        queueNotification('Easter Egg', egg.name, egg.color, 'Découverte rare', egg.chance);
                     }
-
                 }
-
             });
-
         }
-
-
-
-        function spawnEggVisual(egg) {
-
-            const div = document.createElement('div');
-
-            div.className = `easter-egg`;
-
-            div.style.left = `${Math.random() * 70 + 15}%`;
-
-            div.style.top = `${Math.random() * 70 + 15}%`;
-
-            div.style.color = egg.color;
-
-            div.textContent = `✦ ${egg.name}`;
-
-            document.getElementById('visual-effects').appendChild(div);
-
-            setTimeout(() => div.remove(), 4000);
-
-        }
-
-
 
         function checkAchievements() {
-
             ACHIEVEMENTS.forEach(ach => {
-
                 if (!gameState.achievements.includes(ach.id)) {
-
-                    if (ach.req(gameState.secondsPassed, gameState.foundEggs, gameState.level)) {
-
+                    // Les critères : secondes, œufs, niveau, résonances
+                    if (ach.req(gameState.totalSeconds, gameState.foundEggs, gameState.level, gameState.prestigeCount)) {
                         gameState.achievements.push(ach.id);
-
-                        addExp(100); // Bonus d'XP pour succès
-
+                        addExp(100);
                         renderAchievements();
-
-                        saveToLocalStorage();
-
-                        queueNotification('Succès Débloqué', ach.name, '#4f46e5', `${ach.desc} (+100 XP)`, 0.5);
-
+                        queueNotification('Succès', ach.name, '#4f46e5', ach.desc, 0.5);
                     }
-
                 }
-
             });
-
         }
 
+        // --- UI & NOTIFICATIONS ---
+        function updateUI() {
+            const h = Math.floor(gameState.secondsPassed / 3600).toString().padStart(2, '0');
+            const m = Math.floor((gameState.secondsPassed % 3600) / 60).toString().padStart(2, '0');
+            const s = (gameState.secondsPassed % 60).toString().padStart(2, '0');
+            document.getElementById('main-timer').textContent = `${h}:${m}:${s}`;
 
+            if (gameState.prestigeCount > 0 || gameState.fragments > 0) {
+                document.getElementById('prestige-stats').classList.remove('hidden');
+                document.getElementById('fragments-count').textContent = gameState.fragments;
+                document.getElementById('res-count').textContent = gameState.prestigeCount;
+                document.getElementById('multiplier-display').textContent = (1 + gameState.fragments * 0.1).toFixed(1);
+            }
+            if (gameState.level >= 50) document.getElementById('prestige-zone').classList.remove('hidden');
+        }
+
+        function updateExpUI() {
+            const nextReq = Math.floor(100 * Math.pow(1.2, gameState.level - 1));
+            const perc = (gameState.currentExp / nextReq) * 100;
+            document.getElementById('level-display').textContent = gameState.level;
+            document.getElementById('exp-current').textContent = Math.floor(gameState.currentExp);
+            document.getElementById('exp-next').textContent = nextReq;
+            document.getElementById('exp-bar').style.width = `${perc}%`;
+        }
 
         function renderAchievements() {
-
             const container = document.getElementById('tab-achievements');
-
             container.innerHTML = ACHIEVEMENTS.map(ach => {
-
                 const isDone = gameState.achievements.includes(ach.id);
-
                 return `
-
-                    <div class="p-3 rounded-lg border ${isDone ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-white/5 bg-white/5'} flex flex-col">
-
-                        <div class="flex justify-between items-start">
-
-                            <span class="font-bold ${isDone ? 'text-white' : 'text-gray-500'}">${ach.name}</span>
-
-                            <span class="text-[10px] mono px-2 py-0.5 rounded bg-black/40 text-gray-400">${ach.chance}</span>
-
-                        </div>
-
-                        <span class="text-xs text-gray-400 mt-1">${ach.desc}</span>
-
+                    <div class="p-3 rounded-lg border ${isDone ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-white/5 bg-white/5 opacity-50'}">
+                        <div class="text-xs font-bold ${isDone ? 'text-white' : 'text-gray-500'} uppercase">${ach.name}</div>
+                        <div class="text-[10px] text-gray-400 mt-1">${ach.desc}</div>
                     </div>
-
                 `;
-
             }).join('');
-
         }
-
-
 
         function renderEggs() {
-
             const container = document.getElementById('tab-eggs');
-
             container.innerHTML = EASTER_EGGS.map(egg => {
-
                 const found = gameState.foundEggs.includes(egg.id);
-
                 return `
-
-                    <div class="p-3 rounded-lg border ${found ? 'border-white/20 bg-white/5' : 'border-white/5 bg-white/5 opacity-40'} flex justify-between items-center">
-
-                        <div class="flex flex-col">
-
-                            <span class="text-sm font-medium" style="color: ${found ? egg.color : '#444'}">${found ? egg.name : '?? ?????'}</span>
-
-                            <span class="text-[10px] text-gray-500">${egg.chance}% de chance</span>
-
-                        </div>
-
-                        <span class="text-xl">${found ? '✦' : ' '}</span>
-
+                    <div class="p-3 rounded-lg border border-white/5 bg-white/5 ${found ? '' : 'opacity-30'} flex justify-between items-center">
+                        <span class="text-xs" style="color:${found ? egg.color : '#444'}">${found ? egg.name : '???'}</span>
+                        <span class="text-[9px] mono text-gray-600">${egg.chance}%</span>
                     </div>
-
                 `;
-
             }).join('');
-
         }
 
-
-
-        // --- GESTION DES NOTIFICATIONS ---
-
-        function queueNotification(title, name, color, extra, rarityVal) {
-
-            notificationQueue.push({ title, name, color, extra, rarityVal });
-
-            processQueue();
-
+        function queueNotification(title, name, color, extra, rarity) {
+            notificationQueue.push({ title, name, color, extra, rarity });
+            if (!isNotificationActive) processQueue();
         }
-
-
 
         function processQueue() {
-
-            if (isNotificationActive || notificationQueue.length === 0) return;
-
+            if (notificationQueue.length === 0) { isNotificationActive = false; return; }
             isNotificationActive = true;
-
             const data = notificationQueue.shift();
-
-            showNotification(data);
-
-        }
-
-
-
-        function showNotification({ title, name, color, extra, rarityVal }) {
-
-            playDiscoverySound(rarityVal || 1);
+            
+            if (gameState.soundEnabled) {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(220 + (1/(data.rarity || 0.5))*2, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+                osc.start(); osc.stop(audioCtx.currentTime + 1);
+            }
 
             const toast = document.createElement('div');
-
             toast.className = 'success-toast';
-
             toast.style.borderLeftColor = color;
-
-            
-
             toast.innerHTML = `
-
-                <div class="flex flex-col gap-1">
-
-                    <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">${title}</span>
-
-                    <span class="text-lg font-bold text-white" style="text-shadow: 0 0 10px ${color}44">${name}</span>
-
-                    <div class="h-[1px] w-full bg-white/10 my-1"></div>
-
-                    <span class="text-xs text-gray-400 italic">${extra}</span>
-
+                <div class="flex flex-col">
+                    <span class="text-[9px] uppercase text-gray-500 font-bold">${data.title}</span>
+                    <span class="text-sm font-bold text-white">${data.name}</span>
+                    <span class="text-[10px] text-gray-400 mt-1 italic">${data.extra}</span>
                 </div>
-
-                <div class="absolute top-2 right-3 opacity-20">
-
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5">
-
-                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-
-                    </svg>
-
-                </div>
-
             `;
-
-            
-
             document.getElementById('notifications-container').appendChild(toast);
-
-            
-
             setTimeout(() => {
-
-                toast.style.animation = 'slide-out 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-
-                setTimeout(() => {
-
-                    toast.remove();
-
-                    isNotificationActive = false;
-
-                    processQueue();
-
-                }, 500);
-
+                toast.style.animation = 'slide-out 0.5s forwards';
+                setTimeout(() => { toast.remove(); processQueue(); }, 500);
             }, 3500);
-
         }
 
-
-
         window.switchTab = (tab) => {
-
-            const btnAch = document.getElementById('btn-achievements');
-
-            const btnEgg = document.getElementById('btn-eggs');
-
-            
-
-            document.getElementById('tab-achievements').classList.toggle('hidden', tab !== 'achievements');
-
-            document.getElementById('tab-eggs').classList.toggle('hidden', tab !== 'eggs');
-
-            
-
-            // Update Achievement Button
-
-            btnAch.classList.toggle('bg-white/10', tab === 'achievements');
-
-            btnAch.querySelector('svg').classList.toggle('text-indigo-400', tab === 'achievements');
-
-            btnAch.querySelector('svg').classList.toggle('text-gray-400', tab !== 'achievements');
-
-            
-
-            // Update Egg Button
-
-            btnEgg.classList.toggle('bg-white/10', tab === 'eggs');
-
-            btnEgg.querySelector('svg').classList.toggle('text-white', tab === 'eggs');
-
-            btnEgg.querySelector('svg').classList.toggle('text-gray-400', tab !== 'eggs');
-
+            ['achievements', 'talents', 'eggs'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).classList.remove('bg-white/10');
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`nav-${tab}`).classList.add('bg-white/10');
         };
 
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            document.getElementById('sound-toggle').textContent = `Sons : ${gameState.soundEnabled ? 'Activés' : 'Désactivés'}`;
+        }
 
+        function save() { localStorage.setItem('abysse_expansion_save', JSON.stringify(gameState)); }
+        function load() {
+            const s = localStorage.getItem('abysse_expansion_save');
+            if (s) {
+                const p = JSON.parse(s);
+                gameState = { ...gameState, ...p };
+            }
+        }
 
         window.onload = init;
-
     </script>
-
 </body>
-
 </html>
+
