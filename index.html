@@ -23,7 +23,7 @@
             margin: 0;
             background-image: 
                 radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
-            touch-action: manipulation; /* Optimise les taps */
+            touch-action: manipulation;
         }
 
         .mono { font-family: 'JetBrains Mono', monospace; }
@@ -34,7 +34,7 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .glass-hover:active { /* Feedback tactile */
+        .glass-hover:active {
             border-color: rgba(255, 255, 255, 0.3);
             background: rgba(40, 40, 60, 0.8);
         }
@@ -76,7 +76,7 @@
 
         .anomaly {
             position: fixed;
-            width: 70px; height: 70px; /* Un peu plus gros pour mobile */
+            width: 70px; height: 70px;
             background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
             border-radius: 50%;
             cursor: pointer;
@@ -117,14 +117,12 @@
             </div>
         </header>
 
-        <!-- Stats Panel -->
         <div id="prestige-stats" class="hidden flex flex-wrap justify-center gap-3 md:gap-6 py-3 px-6 md:px-8 glass rounded-2xl md:rounded-full text-[8px] md:text-[10px] uppercase tracking-[0.1em] md:tracking-[0.2em] text-indigo-400 font-medium">
             <span>Frag: <span id="fragments-count" class="text-white">0</span></span>
             <span>Mult: <span id="multiplier-display" class="text-white">1.0</span>x</span>
             <span>Res: <span id="res-count" class="text-white">0</span></span>
         </div>
 
-        <!-- Level Progress -->
         <div class="w-full max-w-lg glass p-5 md:p-6 rounded-3xl space-y-4">
             <div class="flex justify-between items-end">
                 <div>
@@ -146,7 +144,6 @@
             </div>
         </div>
 
-        <!-- Central Timer -->
         <div class="relative group cursor-pointer" onclick="spawnAnomaly()">
             <div id="timer-glow" class="absolute -inset-6 md:-inset-10 bg-indigo-600/5 rounded-full blur-[40px] md:blur-[60px] transition-all duration-1000"></div>
             <div class="relative w-48 h-48 md:w-64 md:h-64 rounded-full flex flex-col items-center justify-center float-anim border border-white/5 bg-white/5">
@@ -155,16 +152,14 @@
             </div>
         </div>
 
-        <!-- Navigation -->
         <nav class="flex gap-4 md:gap-8 border-b border-white/5 w-full max-w-md justify-center">
             <button id="nav-achievements" onclick="switchTab('achievements')" class="tab-btn active px-2 py-3 text-[9px] md:text-[10px] uppercase tracking-[0.15em] transition-all text-slate-400">Succès</button>
             <button id="nav-talents" onclick="switchTab('talents')" class="tab-btn px-2 py-3 text-[9px] md:text-[10px] uppercase tracking-[0.15em] transition-all text-slate-400">Talents</button>
             <button id="nav-eggs" onclick="switchTab('eggs')" class="tab-btn px-2 py-3 text-[9px] md:text-[10px] uppercase tracking-[0.15em] transition-all text-slate-400">Collection</button>
         </nav>
 
-        <!-- Content Area -->
         <div class="w-full max-w-3xl min-h-[300px]">
-            <div id="tab-achievements" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar"></div>
+            <div id="tab-achievements" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar"></div>
             
             <div id="tab-talents" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="glass p-5 rounded-2xl space-y-4">
@@ -188,11 +183,9 @@
         </div>
     </div>
 
-    <!-- Notification Position adjusted for mobile -->
     <div id="notifications-container" class="fixed bottom-4 right-4 left-4 md:left-auto md:bottom-8 md:right-8 z-[100] flex flex-col gap-2"></div>
 
     <script>
-        // --- DONNÉES ORIGINALES RESTAURÉES ---
         const EASTER_EGGS = [
             { id: 1, name: "Une ombre passe...", chance: 1, color: "#9ca3af" },
             { id: 2, name: "Un murmure lointain", chance: 0.5, color: "#d1d5db" },
@@ -222,16 +215,38 @@
         ];
 
         const ACHIEVEMENTS = [
+            // ORIGINAUX
             { id: 't_1m', name: "Nouveau-né", desc: "Exister 1 minute", req: (s) => s >= 60 },
             { id: 't_1h', name: "Patient", desc: "Exister 1 heure", req: (s) => s >= 3600 },
             { id: 'e_1', name: "L'éveil", desc: "Trouver votre premier Easter Egg", req: (s, e) => e.length >= 1 },
             { id: 'l_50', name: "Souverain de l'Infini", desc: "Atteindre le niveau 50", req: (s, e, l) => l >= 50 },
             { id: 'res_1', name: "Le Grand Saut", desc: "Effectuer votre première résonance", req: (s, e, l, r) => r >= 1 },
             { id: 'res_5', name: "Fréquence Stable", desc: "Effectuer 5 résonances", req: (s, e, l, r) => r >= 5 },
-            { id: 'res_10', name: "Maître de l'Abysse", desc: "Effectuer 10 résonances", req: (s, e, l, r) => r >= 10 }
+            { id: 'res_10', name: "Maître de l'Abysse", desc: "Effectuer 10 résonances", req: (s, e, l, r) => r >= 10 },
+            
+            // 20 NOUVEAUX SUCCÈS
+            { id: 't_10m', name: "Contemplateur", desc: "Exister 10 minutes", req: (s) => s >= 600 },
+            { id: 't_24h', name: "L'Immuable", desc: "Exister 24 heures au total", req: (s) => s >= 86400 },
+            { id: 'l_10', name: "Ascension", desc: "Atteindre le niveau 10", req: (s, e, l) => l >= 10 },
+            { id: 'l_100', name: "Demi-Dieu", desc: "Atteindre le niveau 100", req: (s, e, l) => l >= 100 },
+            { id: 'l_250', name: "Entité Pure", desc: "Atteindre le niveau 250", req: (s, e, l) => l >= 250 },
+            { id: 'e_5', name: "Collectionneur", desc: "Trouver 5 reliques différentes", req: (s, e) => e.length >= 5 },
+            { id: 'e_15', name: "Archéologue du Vide", desc: "Trouver 15 reliques différentes", req: (s, e) => e.length >= 15 },
+            { id: 'e_all', name: "Omniscience", desc: "Trouver toutes les reliques (25)", req: (s, e) => e.length >= 25 },
+            { id: 'ano_1', name: "Chasseur de Failles", desc: "Capturer une anomalie", req: (s, e, l, r, a) => a >= 1 },
+            { id: 'ano_50', name: "Intercepteur", desc: "Capturer 50 anomalies", req: (s, e, l, r, a) => a >= 50 },
+            { id: 'ano_100', name: "Gardien des Réalités", desc: "Capturer 100 anomalies", req: (s, e, l, r, a) => a >= 100 },
+            { id: 'frag_10', name: "Éclats de Pouvoir", desc: "Cumuler 10 Fragments de Vide", req: (s, e, l, r, a, f) => f >= 10 },
+            { id: 'frag_100', name: "Richesse Absolue", desc: "Cumuler 100 Fragments de Vide", req: (s, e, l, r, a, f) => f >= 100 },
+            { id: 'tal_1', name: "Apprenti", desc: "Améliorer un talent", req: (s, e, l, r, a, f, t) => (t.xp + t.eggs + t.fortune) >= 1 },
+            { id: 'tal_max', name: "Spécialiste", desc: "Monter un talent au niveau 10", req: (s, e, l, r, a, f, t) => t.xp >= 10 || t.eggs >= 10 || t.fortune >= 10 },
+            { id: 'res_25', name: "Éternel Retour", desc: "Effectuer 25 résonances", req: (s, e, l, r) => r >= 25 },
+            { id: 'fast_lv', name: "Flash", desc: "Atteindre le niveau 20 (Vérifié chaque seconde)", req: (s, e, l) => l >= 20 },
+            { id: 'click_master', name: "Réactivité", desc: "Capturer 10 anomalies dans la même session", req: (s, e, l, r, a) => a >= 10 },
+            { id: 'rich_start', name: "Héritage", desc: "Commencer une vie avec plus de 50 fragments", req: (s, e, l, r, a, f) => f >= 50 && r >= 1 },
+            { id: 'complete', name: "L'Abysse vous salue", desc: "Avoir 20 succès déverrouillés", req: (s, e, l, r, a, f, t, ach) => ach >= 20 }
         ];
 
-        // --- ÉTAT ---
         let gameState = {
             secondsPassed: 0, totalSeconds: 0, foundEggs: [], achievements: [],
             soundEnabled: true, level: 1, currentExp: 0, talentPoints: 0,
@@ -241,7 +256,6 @@
 
         let audioCtx = null;
 
-        // --- CORE LOGIC ---
         function init() {
             load();
             initParticles();
@@ -260,7 +274,7 @@
                 addExp(1 * bonus * prestigeMult);
                 updateUI();
                 checkAchievements();
-                if (gameState.secondsPassed % 5 === 0) save();
+                save(); 
             }, 1000);
 
             setInterval(maybeSpawnAnomaly, 10000);
@@ -289,7 +303,6 @@
         function spawnAnomaly() {
             const anomaly = document.createElement('div');
             anomaly.className = 'anomaly';
-            // Empêcher l'apparition trop près des bords sur mobile
             anomaly.style.left = `${Math.random() * 70 + 15}%`;
             anomaly.style.top = `${Math.random() * 70 + 15}%`;
             
@@ -332,7 +345,17 @@
         function checkAchievements() {
             ACHIEVEMENTS.forEach(ach => {
                 if (!gameState.achievements.includes(ach.id)) {
-                    if (ach.req(gameState.totalSeconds, gameState.foundEggs, gameState.level, gameState.prestigeCount)) {
+                    // Passage des arguments étendus pour les nouveaux succès
+                    if (ach.req(
+                        gameState.totalSeconds, 
+                        gameState.foundEggs, 
+                        gameState.level, 
+                        gameState.prestigeCount, 
+                        gameState.anomaliesCaught, 
+                        gameState.fragments, 
+                        gameState.talents,
+                        gameState.achievements.length
+                    )) {
                         gameState.achievements.push(ach.id);
                         addExp(100);
                         renderAchievements();
@@ -345,7 +368,6 @@
         function prestige() {
             if (gameState.level < 50) return;
             const fragmentsToGain = Math.floor(gameState.level / 10);
-            // Custom dialog instead of confirm for mobile smoothness
             const msg = `Résonance : Réinitialiser pour ${fragmentsToGain} Fragments ?`;
             if (!window.confirm(msg)) return; 
             
@@ -356,7 +378,6 @@
             save(); location.reload();
         }
 
-        // --- UI UTILS ---
         function switchTab(tab) {
             ['achievements', 'talents', 'eggs'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
@@ -429,6 +450,7 @@
                 return `<div class="glass p-4 rounded-xl border-white/5 ${done ? 'opacity-100' : 'opacity-30'}">
                     <h4 class="text-[10px] font-bold uppercase tracking-widest text-white">${ach.name}</h4>
                     <p class="text-[9px] text-slate-500 mt-1">${ach.desc}</p>
+                    ${done ? '<span class="text-[8px] text-emerald-500 mt-2 block">DÉBLOQUÉ</span>' : ''}
                 </div>`;
             }).join('');
         }
@@ -463,11 +485,9 @@
         function toggleSound() {
             gameState.soundEnabled = !gameState.soundEnabled;
             document.getElementById('sound-toggle').textContent = `Audio: ${gameState.soundEnabled ? 'Activé' : 'Désactivé'}`;
-            // Unlock audio on interaction
             if(gameState.soundEnabled && audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        // --- BACKGROUND CANVAS ---
         const canvas = document.getElementById('canvas-bg');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -475,7 +495,7 @@
             canvas.width = window.innerWidth; 
             canvas.height = window.innerHeight;
             particles = [];
-            const count = window.innerWidth < 768 ? 30 : 60; // Moins sur mobile pour perf
+            const count = window.innerWidth < 768 ? 30 : 60;
             for(let i=0; i<count; i++) particles.push({ 
                 x: Math.random()*canvas.width, 
                 y: Math.random()*canvas.height, 
@@ -505,4 +525,3 @@
     </script>
 </body>
 </html>
-
