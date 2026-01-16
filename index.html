@@ -199,6 +199,42 @@
             0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
             50% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.6); }
         }
+
+        @keyframes pulse-ring {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 0.3;
+            }
+            50% { 
+                transform: scale(1.05);
+                opacity: 0.1;
+            }
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+            pointer-events: none;
+            filter: blur(1px);
+        }
+
+        @keyframes float-particle {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(var(--drift));
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center py-6 md:py-12 px-4 md:px-6">
@@ -258,10 +294,12 @@
         </div>
 
         <div class="relative group">
-            <div id="timer-glow" class="absolute -inset-6 md:-inset-10 bg-indigo-600/5 rounded-full blur-[40px] md:blur-[60px] transition-all duration-1000"></div>
-            <div class="relative w-48 h-48 md:w-64 md:h-64 rounded-full flex flex-col items-center justify-center float-anim border border-white/5 bg-white/5">
-                <span id="main-timer" class="text-3xl md:text-4xl font-extralight mono tracking-tighter text-white">00:00:00</span>
-                <span class="text-[8px] md:text-[9px] uppercase tracking-[0.4em] text-slate-400 mt-4">Existence</span>
+            <div id="timer-glow" class="absolute -inset-12 md:-inset-20 bg-indigo-600/10 rounded-full blur-[80px] md:blur-[120px] transition-all duration-1000"></div>
+            <div class="absolute -inset-8 md:-inset-16 bg-purple-600/5 rounded-full blur-[60px] md:blur-[100px] animate-pulse"></div>
+            <div class="relative w-64 h-64 md:w-80 md:h-80 rounded-full flex flex-col items-center justify-center float-anim border-2 border-white/10 bg-gradient-to-br from-white/5 via-indigo-500/5 to-purple-500/5 shadow-2xl" style="box-shadow: 0 0 60px rgba(99, 102, 241, 0.2), inset 0 0 40px rgba(99, 102, 241, 0.05);">
+                <div class="absolute inset-0 rounded-full border border-white/5" style="animation: pulse-ring 3s ease-in-out infinite;"></div>
+                <span id="main-timer" class="text-4xl md:text-5xl font-extralight mono tracking-tighter text-white" style="text-shadow: 0 0 20px rgba(255,255,255,0.3);">00:00:00</span>
+                <span class="text-[9px] md:text-[10px] uppercase tracking-[0.5em] text-slate-300 mt-5">Existence</span>
             </div>
         </div>
 
@@ -626,23 +664,49 @@
             canvas.width = window.innerWidth; 
             canvas.height = window.innerHeight;
             particles = [];
-            const count = window.innerWidth < 768 ? 30 : 60;
+            const count = window.innerWidth < 768 ? 60 : 120;
             for(let i=0; i<count; i++) particles.push({ 
                 x: Math.random()*canvas.width, 
                 y: Math.random()*canvas.height, 
-                s: Math.random()*1.5, 
-                v: Math.random()*0.3+0.1 
+                s: Math.random()*2.5 + 0.5, 
+                v: Math.random()*0.5 + 0.2,
+                opacity: Math.random()*0.5 + 0.2
             });
         }
         function drawParticles() {
-            ctx.clearRect(0,0,canvas.width,canvas.height); 
-            ctx.fillStyle="white";
+            ctx.clearRect(0,0,canvas.width,canvas.height);
             particles.forEach(p => {
-                ctx.globalAlpha = 0.3; ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
-                p.y -= p.v; if(p.y < -10) p.y = canvas.height+10;
+                ctx.globalAlpha = p.opacity;
+                ctx.fillStyle = "white";
+                ctx.beginPath(); 
+                ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); 
+                ctx.fill();
+                p.y -= p.v; 
+                if(p.y < -10) {
+                    p.y = canvas.height + 10;
+                    p.x = Math.random() * canvas.width;
+                }
             });
             requestAnimationFrame(drawParticles);
         }
+
+        function createFloatingParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const size = Math.random() * 4 + 2;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.bottom = '-10px';
+            particle.style.setProperty('--drift', `${(Math.random() - 0.5) * 100}px`);
+            particle.style.animation = `float-particle ${Math.random() * 15 + 10}s linear`;
+            document.body.appendChild(particle);
+            particle.addEventListener('animationend', () => particle.remove());
+        }
+
+        setInterval(() => {
+            if (Math.random() < 0.3) createFloatingParticle();
+        }, 500);
 
         function save() { localStorage.setItem('abysse_exp_v3', JSON.stringify(gameState)); }
         function load() {
