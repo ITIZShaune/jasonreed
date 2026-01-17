@@ -406,38 +406,51 @@
         ];
 
         const ACHIEVEMENTS = [
+            // --- TEMPS ---
             { id: 't_1m', name: "Premier Souffle", desc: "Exister pendant 1 minute.", req: (s) => s >= 60 },
             { id: 't_10m', name: "L'Attente", desc: "Exister pendant 10 minutes.", req: (s) => s >= 600 },
             { id: 't_1h', name: "Méditation", desc: "Exister pendant 1 heure.", req: (s) => s >= 3600 },
             { id: 't_24h', name: "L'Éternité", desc: "Exister pendant 24 heures cumulées.", req: (s) => s >= 86400 },
+            { id: 't_48h', name: "Hibernation", desc: "Exister pendant 48 heures cumulées.", req: (s) => s >= 172800 },
+
+            // --- NIVEAUX ---
             { id: 'l_10', name: "Éveil Spirituel", desc: "Atteindre le Niveau 10.", req: (s, e, l) => l >= 10 },
             { id: 'l_50', name: "Transmutation", desc: "Atteindre le Niveau 50.", req: (s, e, l) => l >= 50 },
             { id: 'l_100', name: "Omnipotence", desc: "Atteindre le Niveau 100.", req: (s, e, l) => l >= 100 },
+            { id: 'l_150', name: "Demi-Dieu", desc: "Atteindre le Niveau 150.", req: (s, e, l) => l >= 150 },
+            { id: 'l_200', name: "Transcendance", desc: "Atteindre le Niveau 200.", req: (s, e, l) => l >= 200 },
+
+            // --- RELIQUES ---
             { id: 'e_1', name: "Curiosité", desc: "Trouver votre première relique.", req: (s, e) => e.length >= 1 },
             { id: 'e_10', name: "Archiviste du Néant", desc: "Trouver 10 reliques différentes.", req: (s, e) => e.length >= 10 },
             { id: 'e_all', name: "Maître des Reliques", desc: "Trouver 25 reliques.", req: (s, e) => e.length >= 25 },
+            { id: 'e_40', name: "Collectionneur Galactique", desc: "Trouver 40 reliques différentes.", req: (s, e) => e.length >= 40 },
+            { id: 'e_50', name: "Musée du Néant", desc: "Trouver les 50 reliques.", req: (s, e) => e.length >= 50 },
+
+            // --- ANOMALIES ---
             { id: 'ano_1', name: "Œil de Lynx", desc: "Capturer une anomalie temporelle.", req: (s, e, l, r, a) => a >= 1 },
             { id: 'ano_25', name: "Perturbation", desc: "Capturer 25 anomalies.", req: (s, e, l, r, a) => a >= 25 },
             { id: 'ano_100', name: "Maître du Chaos", desc: "Capturer 100 anomalies.", req: (s, e, l, r, a) => a >= 100 },
-            { id: 'res_1', name: "Le Grand Saut", desc: "Effectuer votre première résonance.", req: (s, e, l, r) => r >= 1 },
-            { id: 'res_10', name: "Cycle sans fin", desc: "Effectuer 10 résonances.", req: (s, e, l, r) => r >= 10 },
-            { id: 'frag_100', name: "Fortune du Vide", desc: "Cumuler 100 Fragments de Vide.", req: (s, e, l, r, a, f) => f >= 100 },
+            { id: 'ano_500', name: "Gardien du Temps", desc: "Capturer 500 anomalies.", req: (s, e, l, r, a) => a >= 500 },
+
+            // --- TALENTS ---
             { id: 'tal_1', name: "Apprenti du Vide", desc: "Améliorer votre premier talent.", req: (s, e, l, r, a, f, t) => (t.xp + t.eggs + t.fortune) >= 1 },
             { id: 'tal_max', name: "Perfectionniste", desc: "Monter un talent au niveau 10.", req: (s, e, l, r, a, f, t) => t.xp >= 10 || t.eggs >= 10 || t.fortune >= 10 },
-            { id: 'complete_15', name: "L'Abysse vous regarde", desc: "Débloquer 15 succès.", req: (s, e, l, r, a, f, t, ach) => ach >= 15 },
-            { id: 'complete_all', name: "Maître de l'Abysse", desc: "Débloquer 20 succès.", req: (s, e, l, r, a, f, t, ach) => ach >= 20 },
-            
-            // Nouveaux Succès
-            { id: 'l_150', name: "Demi-Dieu", desc: "Atteindre le Niveau 150.", req: (s, e, l) => l >= 150 },
-            { id: 'l_200', name: "Transcendance", desc: "Atteindre le Niveau 200.", req: (s, e, l) => l >= 200 },
-            { id: 'e_40', name: "Collectionneur Galactique", desc: "Trouver 40 reliques différentes.", req: (s, e) => e.length >= 40 },
-            { id: 'e_50', name: "Musée du Néant", desc: "Trouver les 50 reliques.", req: (s, e) => e.length >= 50 },
-            { id: 'frag_500', name: "Richesse Cosmique", desc: "Cumuler 500 Fragments de Vide.", req: (s, e, l, r, a, f) => f >= 500 },
-            { id: 'res_25', name: "Voyageur Temporel", desc: "Effectuer 25 résonances.", req: (s, e, l, r) => r >= 25 },
-            { id: 'ano_500', name: "Gardien du Temps", desc: "Capturer 500 anomalies.", req: (s, e, l, r, a) => a >= 500 },
-            { id: 't_48h', name: "Hibernation", desc: "Exister pendant 48 heures cumulées.", req: (s) => s >= 172800 },
             { id: 'tal_total_50', name: "Polymath", desc: "Dépenser 50 points de talents au total.", req: (s, e, l, r, a, f, t) => (t.xp + t.eggs + t.fortune) >= 50 },
-            { id: 'frag_1000', name: "Architecte", desc: "Cumuler 1000 Fragments de Vide.", req: (s, e, l, r, a, f) => f >= 1000 }
+
+            // --- RÉSONANCE ---
+            { id: 'res_1', name: "Le Grand Saut", desc: "Effectuer votre première résonance.", req: (s, e, l, r) => r >= 1 },
+            { id: 'res_10', name: "Cycle sans fin", desc: "Effectuer 10 résonances.", req: (s, e, l, r) => r >= 10 },
+            { id: 'res_25', name: "Voyageur Temporel", desc: "Effectuer 25 résonances.", req: (s, e, l, r) => r >= 25 },
+
+            // --- FRAGMENTS ---
+            { id: 'frag_100', name: "Fortune du Vide", desc: "Cumuler 100 Fragments de Vide.", req: (s, e, l, r, a, f) => f >= 100 },
+            { id: 'frag_500', name: "Richesse Cosmique", desc: "Cumuler 500 Fragments de Vide.", req: (s, e, l, r, a, f) => f >= 500 },
+            { id: 'frag_1000', name: "Architecte", desc: "Cumuler 1000 Fragments de Vide.", req: (s, e, l, r, a, f) => f >= 1000 },
+
+            // --- GLOBAL ---
+            { id: 'complete_15', name: "L'Abysse vous regarde", desc: "Débloquer 15 succès.", req: (s, e, l, r, a, f, t, ach) => ach >= 15 },
+            { id: 'complete_all', name: "Maître de l'Abysse", desc: "Débloquer 20 succès.", req: (s, e, l, r, a, f, t, ach) => ach >= 20 }
         ];
 
         let gameState = {
