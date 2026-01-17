@@ -377,7 +377,32 @@
             { id: 22, name: "Apparition du Créateur", chance: 0.0008, color: "#eab308" },
             { id: 23, name: "Supernova Silencieuse", chance: 0.0005, color: "#ea580c" },
             { id: 24, name: "Collision Dimensionnelle", chance: 0.0002, color: "#d946ef" },
-            { id: 25, name: "L'Alpha et l'Oméga", chance: 0.0001, color: "#f8fafc" }
+            { id: 25, name: "L'Alpha et l'Oméga", chance: 0.0001, color: "#f8fafc" },
+            { id: 26, name: "Matière Noire", chance: 0.00009, color: "#1e1b4b" },
+            { id: 27, name: "Rayonnement de Hawking", chance: 0.00008, color: "#e879f9" },
+            { id: 28, name: "Le Monolithe", chance: 0.00007, color: "#171717" },
+            { id: 29, name: "Puce Neuronale", chance: 0.00006, color: "#2dd4bf" },
+            { id: 30, name: "Éclat de Réalité", chance: 0.00005, color: "#f0abfc" },
+            { id: 31, name: "Larmes du Temps", chance: 0.00005, color: "#60a5fa" },
+            { id: 32, name: "Cube Cosmique", chance: 0.00004, color: "#0ea5e9" },
+            { id: 33, name: "Séquence ADN Alien", chance: 0.00004, color: "#84cc16" },
+            { id: 34, name: "Trou de Ver", chance: 0.00003, color: "#a855f7" },
+            { id: 35, name: "Constellation Perdue", chance: 0.00003, color: "#fcd34d" },
+            { id: 36, name: "Mur de Planck", chance: 0.000025, color: "#fb7185" },
+            { id: 37, name: "Boson de Higgs", chance: 0.00002, color: "#fbbf24" },
+            { id: 38, name: "Horloge de l'Apocalypse", chance: 0.00002, color: "#b91c1c" },
+            { id: 39, name: "Silence Éternel", chance: 0.000015, color: "#0f172a" },
+            { id: 40, name: "Clé de la Matrice", chance: 0.000015, color: "#22c55e" },
+            { id: 41, name: "Rêve d'Androïde", chance: 0.00001, color: "#38bdf8" },
+            { id: 42, name: "Poussière de Lune", chance: 0.00001, color: "#e2e8f0" },
+            { id: 43, name: "Signal Wow!", chance: 0.000009, color: "#fca5a5" },
+            { id: 44, name: "Sphère de Dyson", chance: 0.000008, color: "#f59e0b" },
+            { id: 45, name: "Entropie Maximale", chance: 0.000007, color: "#7c3aed" },
+            { id: 46, name: "Lumière Liquide", chance: 0.000006, color: "#67e8f9" },
+            { id: 47, name: "Le 5ème Élément", chance: 0.000005, color: "#f97316" },
+            { id: 48, name: "Code Konami", chance: 0.000004, color: "#ef4444" },
+            { id: 49, name: "Fin de la Simulation", chance: 0.000002, color: "#000000" },
+            { id: 50, name: "Le Vide Absolu", chance: 0.000001, color: "#ffffff" }
         ];
 
         const ACHIEVEMENTS = [
@@ -390,7 +415,7 @@
             { id: 'l_100', name: "Omnipotence", desc: "Atteindre le Niveau 100.", req: (s, e, l) => l >= 100 },
             { id: 'e_1', name: "Curiosité", desc: "Trouver votre première relique.", req: (s, e) => e.length >= 1 },
             { id: 'e_10', name: "Archiviste du Néant", desc: "Trouver 10 reliques différentes.", req: (s, e) => e.length >= 10 },
-            { id: 'e_all', name: "Maître des Reliques", desc: "Trouver les 25 reliques.", req: (s, e) => e.length >= 25 },
+            { id: 'e_all', name: "Maître des Reliques", desc: "Trouver 25 reliques.", req: (s, e) => e.length >= 25 },
             { id: 'ano_1', name: "Œil de Lynx", desc: "Capturer une anomalie temporelle.", req: (s, e, l, r, a) => a >= 1 },
             { id: 'ano_25', name: "Perturbation", desc: "Capturer 25 anomalies.", req: (s, e, l, r, a) => a >= 25 },
             { id: 'ano_100', name: "Maître du Chaos", desc: "Capturer 100 anomalies.", req: (s, e, l, r, a) => a >= 100 },
@@ -400,20 +425,54 @@
             { id: 'tal_1', name: "Apprenti du Vide", desc: "Améliorer votre premier talent.", req: (s, e, l, r, a, f, t) => (t.xp + t.eggs + t.fortune) >= 1 },
             { id: 'tal_max', name: "Perfectionniste", desc: "Monter un talent au niveau 10.", req: (s, e, l, r, a, f, t) => t.xp >= 10 || t.eggs >= 10 || t.fortune >= 10 },
             { id: 'complete_15', name: "L'Abysse vous regarde", desc: "Débloquer 15 succès.", req: (s, e, l, r, a, f, t, ach) => ach >= 15 },
-            { id: 'complete_all', name: "Maître de l'Abysse", desc: "Débloquer un total de 20 succès.", req: (s, e, l, r, a, f, t, ach) => ach >= 20 }
+            { id: 'complete_all', name: "Maître de l'Abysse", desc: "Débloquer 20 succès.", req: (s, e, l, r, a, f, t, ach) => ach >= 20 },
+            
+            // Nouveaux Succès
+            { id: 'l_150', name: "Demi-Dieu", desc: "Atteindre le Niveau 150.", req: (s, e, l) => l >= 150 },
+            { id: 'l_200', name: "Transcendance", desc: "Atteindre le Niveau 200.", req: (s, e, l) => l >= 200 },
+            { id: 'e_40', name: "Collectionneur Galactique", desc: "Trouver 40 reliques différentes.", req: (s, e) => e.length >= 40 },
+            { id: 'e_50', name: "Musée du Néant", desc: "Trouver les 50 reliques.", req: (s, e) => e.length >= 50 },
+            { id: 'frag_500', name: "Richesse Cosmique", desc: "Cumuler 500 Fragments de Vide.", req: (s, e, l, r, a, f) => f >= 500 },
+            { id: 'res_25', name: "Voyageur Temporel", desc: "Effectuer 25 résonances.", req: (s, e, l, r) => r >= 25 },
+            { id: 'ano_500', name: "Gardien du Temps", desc: "Capturer 500 anomalies.", req: (s, e, l, r, a) => a >= 500 },
+            { id: 't_48h', name: "Hibernation", desc: "Exister pendant 48 heures cumulées.", req: (s) => s >= 172800 },
+            { id: 'tal_total_50', name: "Polymath", desc: "Dépenser 50 points de talents au total.", req: (s, e, l, r, a, f, t) => (t.xp + t.eggs + t.fortune) >= 50 },
+            { id: 'frag_1000', name: "Architecte", desc: "Cumuler 1000 Fragments de Vide.", req: (s, e, l, r, a, f) => f >= 1000 }
         ];
 
         let gameState = {
             secondsPassed: 0, totalSeconds: 0, foundEggs: [], achievements: [],
             soundEnabled: true, level: 1, currentExp: 0, talentPoints: 0,
             talents: { xp: 0, eggs: 0, fortune: 0 },
-            fragments: 0, prestigeCount: 0, anomaliesCaught: 0
+            fragments: 0, prestigeCount: 0, anomaliesCaught: 0,
+            lastSaveTime: Date.now()
         };
 
         let audioCtx = null;
 
         function init() {
             load();
+            
+            // Calcul du temps passé hors ligne (Anti-Pause)
+            if (gameState.lastSaveTime) {
+                const now = Date.now();
+                const diffSeconds = Math.floor((now - gameState.lastSaveTime) / 1000);
+                if (diffSeconds > 10) { // Si plus de 10 secondes d'absence
+                    gameState.secondsPassed += diffSeconds;
+                    gameState.totalSeconds += diffSeconds;
+                    
+                    // Simulation du gain d'XP
+                    let bonus = 1 + (gameState.talents.xp * 0.2);
+                    let prestigeMult = 1 + (gameState.fragments * 0.1);
+                    let xpGained = diffSeconds * (1 * bonus * prestigeMult);
+                    addExp(xpGained);
+                    
+                    setTimeout(() => {
+                        queueNotification('Retour du Vide', `Absence: ${formatTime(diffSeconds)}`, '#6366f1', `+${Math.floor(xpGained)} XP générés pendant votre sommeil.`);
+                    }, 1000);
+                }
+            }
+
             initParticles();
             drawParticles();
             updateUI();
@@ -435,6 +494,13 @@
 
             setInterval(maybeSpawnAnomaly, 10000);
             setInterval(checkEasterEggs, 5000);
+        }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${h}h ${m}m ${s}s`;
         }
 
         function hardReset() {
@@ -538,6 +604,7 @@
             gameState.prestigeCount++;
             gameState.level = 1; gameState.currentExp = 0; gameState.secondsPassed = 0;
             gameState.talentPoints = 0; gameState.talents = { xp: 0, eggs: 0, fortune: 0 };
+            gameState.foundEggs = []; // Optional reset of eggs on prestige
             save(); location.reload();
         }
 
@@ -713,7 +780,12 @@
             if (Math.random() < 0.3) createFloatingParticle();
         }, 500);
 
-        function save() { localStorage.setItem('abysse_exp_v3', JSON.stringify(gameState)); }
+        function save() { 
+            // Sauvegarde le temps actuel pour calculer l'absence
+            gameState.lastSaveTime = Date.now();
+            localStorage.setItem('abysse_exp_v3', JSON.stringify(gameState)); 
+        }
+        
         function load() {
             const s = localStorage.getItem('abysse_exp_v3');
             if (s) gameState = { ...gameState, ...JSON.parse(s) };
